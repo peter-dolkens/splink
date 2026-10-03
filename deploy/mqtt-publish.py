@@ -146,7 +146,7 @@ def publish_if_changed(client, topic, payload, force):
     """
     if not force and _last_sent.get(topic) == payload:
         return 0
-    client.publish(topic, payload)
+    client.publish(topic, payload, retain=True)
     _last_sent[topic] = payload
     return 1
 
@@ -156,13 +156,30 @@ def main():
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="solar-bridge")
     client.username_pw_set(conf["MQTT_USERNAME"], conf["MQTT_PASSWORD"])
     client.will_set(f"{PREFIX}/status", "offline", retain=True)
+
+    configs = discovery_configs()
+
+    def on_connect(_client, _userdata, _flags, reason, _props=None):
+        """Re-announce on every connect, not just the first.
+
+        A dropped link makes the broker publish our retained last-will, so Home Assistant
+        sees "offline". paho reconnects by itself, but unless we say "online" again nothing
+        ever clears that, and the entities stay unavailable while we happily publish state
+        into the void. Discovery is re-sent too, in case the broker lost its retained set.
+        """
+        if reason != 0:
+            print(f"connect failed: {reason}", file=sys.stderr, flush=True)
+            return
+        for topic, cfg in configs:
+            _client.publish(topic, json.dumps(cfg), retain=True)
+        _client.publish(f"{PREFIX}/status", "online", retain=True)
+        # Force the next cycle to publish state, so a reconnect does not wait for a change.
+        _last_sent.clear()
+        print(f"connected: re-announced {len(configs)} discovery configs", flush=True)
+
+    client.on_connect = on_connect
     client.connect(conf.get("MQTT_HOST", "127.0.0.1"), int(conf.get("MQTT_PORT", "1883")), keepalive=60)
     client.loop_start()
-
-    for topic, cfg in discovery_configs():
-        client.publish(topic, json.dumps(cfg), retain=True)
-    client.publish(f"{PREFIX}/status", "online", retain=True)
-    print(f"published {len(discovery_configs())} discovery configs", flush=True)
 
     def stop(*_):
         global running

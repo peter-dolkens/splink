@@ -40,6 +40,17 @@ every single request. The default of 300s suits a 60s poll.
 availability driven by a retained last-will. It reads the bridge over localhost, so the
 publishing path does not depend on the JSON API being reachable from outside.
 
+**If you adapt this, keep the `on_connect` handler.** When the broker link drops, the broker
+publishes the retained last-will and every entity goes unavailable — correct behaviour. The
+client reconnects by itself, but unless something republishes `online` afterwards the
+entities stay unavailable while the publisher cheerfully pushes state nobody is listening to.
+Re-announcing on every connect, rather than only at start-up, is what makes that recoverable.
+
+The same applies to the publish-on-change behaviour below: because an unchanged topic is
+never resent, a reconnect must clear the cache or the first post-reconnect state could be
+many minutes away. State is published retained for the same reason, so a subscriber
+attaching late gets current values rather than silence.
+
 If the broker is not directly routable — for instance it sits behind Home Assistant's own
 Cloudflare tunnel — run a tunnel client alongside it to present the broker locally:
 
