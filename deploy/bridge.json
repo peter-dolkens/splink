@@ -1,0 +1,6 @@
+{
+  "fronius": [
+    { "name": "right", "host": "192.0.2.10" },
+    { "name": "left",  "host": "192.0.2.11" }
+  ]
+}

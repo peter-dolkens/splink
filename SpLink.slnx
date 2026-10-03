@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SpLink.Cli/SpLink.Cli.csproj" />
+    <Project Path="src/SpLink.Protocol/SpLink.Protocol.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SpLink.Protocol.Tests/SpLink.Protocol.Tests.csproj" />
+  </Folder>
+</Solution>

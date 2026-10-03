@@ -1,0 +1,16 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+.DS_Store
+
+# Credentials and anything installation-specific
+.env
+.env.*
+secrets/
+*.pem
+*.key
+
+# Decompiled vendor software used to derive the protocol. Never distribute.
+reference/

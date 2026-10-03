@@ -1,0 +1,3388 @@
+{
+ "Common": [
+  {
+   "index": 0,
+   "name": "ApplicationType",
+   "control": "cbApplicationType",
+   "converter": "AppType"
+  },
+  {
+   "index": 1,
+   "name": "BatteryType",
+   "control": "cbBatteryType",
+   "converter": "BatteryType"
+  },
+  {
+   "index": 2,
+   "name": "BeeperControl",
+   "control": "cbBeeperControl",
+   "converter": "BeepControl"
+  },
+  {
+   "index": 3,
+   "name": "BeeperLockoutStartTime",
+   "control": "dtpBeeperLockoutStartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 4,
+   "name": "BeeperLockoutStopTime",
+   "control": "dtpBeeperLockoutStopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 5,
+   "name": "ACInputChargeAlert",
+   "control": "nudACInputChargeAlert",
+   "converter": "Numerical"
+  },
+  {
+   "index": 6,
+   "name": "SoCMonitor",
+   "control": "cbSoCMonitor",
+   "converter": "Logical"
+  },
+  {
+   "index": 8,
+   "name": "GeneratorAvailable",
+   "control": "cbGeneratorAvailable",
+   "converter": "GeneratorAvailable"
+  },
+  {
+   "index": 9,
+   "name": "GeneratorSchedule1",
+   "control": "cbGeneratorSchedule1",
+   "converter": "Logical"
+  },
+  {
+   "index": 10,
+   "name": "GeneratorSchedule1Day",
+   "control": "cbGeneratorSchedule1Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 11,
+   "name": "GeneratorSchedule1StartTime",
+   "control": "dtpGeneratorSchedule1StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 12,
+   "name": "GeneratorSchedule1StopTime",
+   "control": "dtpGeneratorSchedule1StopTime",
+   "converter": "StopTimeWithDisable"
+  },
+  {
+   "index": 13,
+   "name": "GeneratorSchedule2",
+   "control": "cbGeneratorSchedule2",
+   "converter": "Logical"
+  },
+  {
+   "index": 14,
+   "name": "GeneratorSchedule2Day",
+   "control": "cbGeneratorSchedule2Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 15,
+   "name": "GeneratorSchedule2StartTime",
+   "control": "dtpGeneratorSchedule2StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 16,
+   "name": "GeneratorSchedule2StopTime",
+   "control": "dtpGeneratorSchedule2StopTime",
+   "converter": "StopTimeWithDisable"
+  },
+  {
+   "index": 17,
+   "name": "GeneratorSchedule3",
+   "control": "cbGeneratorSchedule3",
+   "converter": "Logical"
+  },
+  {
+   "index": 18,
+   "name": "GeneratorSchedule3Day",
+   "control": "cbGeneratorSchedule3Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 19,
+   "name": "GeneratorSchedule3StartTime",
+   "control": "dtpGeneratorSchedule3StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 20,
+   "name": "GeneratorSchedule3StopTime",
+   "control": "dtpGeneratorSchedule3StopTime",
+   "converter": "StopTimeWithDisable"
+  },
+  {
+   "index": 21,
+   "name": "GeneratorSchedule4",
+   "control": "cbGeneratorSchedule4",
+   "converter": "Logical"
+  },
+  {
+   "index": 22,
+   "name": "GeneratorSchedule4Day",
+   "control": "cbGeneratorSchedule4Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 23,
+   "name": "GeneratorSchedule4StartTime",
+   "control": "dtpGeneratorSchedule4StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 24,
+   "name": "GeneratorSchedule4StopTime",
+   "control": "dtpGeneratorSchedule4StopTime",
+   "converter": "StopTimeWithDisable"
+  },
+  {
+   "index": 25,
+   "name": "ShutdownTimeSchedule1",
+   "control": "cbShutdownTimeSchedule1",
+   "converter": "Logical"
+  },
+  {
+   "index": 26,
+   "name": "ShutdownTimeSchedule1Day",
+   "control": "cbShutdownTimeSchedule1Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 27,
+   "name": "ShutdownTimeSchedule1StartTime",
+   "control": "dtpShutdownTimeSchedule1StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 28,
+   "name": "ShutdownTimeSchedule1StopTime",
+   "control": "dtpShutdownTimeSchedule1StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 29,
+   "name": "ShutdownTimeSchedule2",
+   "control": "cbShutdownTimeSchedule2",
+   "converter": "Logical"
+  },
+  {
+   "index": 30,
+   "name": "ShutdownTimeSchedule2Day",
+   "control": "cbShutdownTimeSchedule2Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 31,
+   "name": "ShutdownTimeSchedule2StartTime",
+   "control": "dtpShutdownTimeSchedule2StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 32,
+   "name": "ShutdownTimeSchedule2StopTime",
+   "control": "dtpShutdownTimeSchedule2StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 33,
+   "name": "ShutdownTimeSchedule3",
+   "control": "cbShutdownTimeSchedule3",
+   "converter": "Logical"
+  },
+  {
+   "index": 34,
+   "name": "ShutdownTimeSchedule3Day",
+   "control": "cbShutdownTimeSchedule3Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 35,
+   "name": "ShutdownTimeSchedule3StartTime",
+   "control": "dtpShutdownTimeSchedule3StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 36,
+   "name": "ShutdownTimeSchedule3StopTime",
+   "control": "dtpShutdownTimeSchedule3StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 37,
+   "name": "ShutdownTimeSchedule4",
+   "control": "cbShutdownTimeSchedule4",
+   "converter": "Logical"
+  },
+  {
+   "index": 38,
+   "name": "ShutdownTimeSchedule4Day",
+   "control": "cbShutdownTimeSchedule4Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 39,
+   "name": "ShutdownTimeSchedule4StartTime",
+   "control": "dtpShutdownTimeSchedule4StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 40,
+   "name": "ShutdownTimeSchedule4StopTime",
+   "control": "dtpShutdownTimeSchedule4StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 41,
+   "name": "GeneratorMinimumRunTime",
+   "control": "nudGeneratorMinimumRunTime",
+   "converter": "Numerical"
+  },
+  {
+   "index": 42,
+   "name": "SoCNightAssistPeriod",
+   "control": "cbSoCNightAssistPeriod",
+   "converter": "Logical"
+  },
+  {
+   "index": 43,
+   "name": "SoCNightAssistPeriodStartTime",
+   "control": "dtpSoCNightAssistPeriodStartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 44,
+   "name": "SoCNightAssistPeriodStopTime",
+   "control": "dtpSoCNightAssistPeriodStopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 45,
+   "name": "SoCNightAssistPeriodStartSoC",
+   "control": "nudSoCNightAssistPeriodStartSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 46,
+   "name": "SoCNightAssistPeriodStopSoC",
+   "control": "nudSoCNightAssistPeriodStopSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 47,
+   "name": "NormalPeriodStartSoC",
+   "control": "nudNormalPeriodStartSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 48,
+   "name": "NormalPeriodStopSoC",
+   "control": "nudNormalPeriodStopSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 49,
+   "name": "SoCRenewAssistPeriod",
+   "control": "cbSoCRenewAssistPeriod",
+   "converter": "Logical"
+  },
+  {
+   "index": 50,
+   "name": "SoCRenewAssistPeriodStartTime",
+   "control": "dtpSoCRenewAssistPeriodStartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 51,
+   "name": "SoCRenewAssistPeriodStopTime",
+   "control": "dtpSoCRenewAssistPeriodStopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 52,
+   "name": "SoCRenewAssistPeriodStartSoC",
+   "control": "nudSoCRenewAssistPeriodStartSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 53,
+   "name": "SoCRenewAssistPeriodStopSoC",
+   "control": "nudSoCRenewAssistPeriodStopSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 54,
+   "name": "DetailedDataLogInterval",
+   "control": "cbDetailedDataLogInterval",
+   "converter": "DataLogInterval"
+  },
+  {
+   "index": 55,
+   "name": "nud5MinuteAverageBatteryToStartGenerator",
+   "control": "nud5MinuteAverageBatteryToStartGenerator",
+   "converter": "AverageBatteryToStartGenerator"
+  },
+  {
+   "index": 56,
+   "name": "Port2DTRDCD",
+   "control": "cbPort2DTRDCD",
+   "converter": "Logical"
+  },
+  {
+   "index": 57,
+   "name": "nud15MinuteAverageBatteryToStartGenerator",
+   "control": "nud15MinuteAverageBatteryToStartGenerator",
+   "converter": "AverageBatteryToStartGenerator"
+  },
+  {
+   "index": 58,
+   "name": "GeneratorMaxDaysExercise",
+   "control": "nudGeneratorMaxDaysExercise",
+   "converter": "Numerical"
+  },
+  {
+   "index": 59,
+   "name": "GeneratorStartTimeExercise",
+   "control": "dtpGeneratorStartTimeExercise",
+   "converter": "Time"
+  },
+  {
+   "index": 60,
+   "name": "GeneratorStartDelay",
+   "control": "nudGeneratorStartDelay",
+   "converter": "NumericalInUnitsWhichIsStoredInMiliUnits"
+  },
+  {
+   "index": 61,
+   "name": "GeneratorStartTime",
+   "control": "nudGeneratorStartTime",
+   "converter": "NumericalInUnitsWhichIsStoredInMiliUnits"
+  },
+  {
+   "index": 63,
+   "name": "BatterySize",
+   "control": "nudBatterySize",
+   "converter": "Numerical"
+  },
+  {
+   "index": 64,
+   "name": "PrimaryMaxPower",
+   "control": "nudPrimaryMaxPower",
+   "converter": "InputPower"
+  },
+  {
+   "index": 65,
+   "name": "AlternateMaxPower",
+   "control": "nudAlternateMaxPower",
+   "converter": "InputPower"
+  },
+  {
+   "index": 66,
+   "name": "InverterAcVolts",
+   "control": "nudInverterAcVolts",
+   "converter": "Numerical"
+  },
+  {
+   "index": 67,
+   "name": "EconoPulseRate",
+   "control": "nudEconoPulseRate",
+   "converter": "NumericalInUnitsWhichIsStoredInMiliUnits"
+  },
+  {
+   "index": 68,
+   "name": "EconoThreshold",
+   "control": "nudEconoThreshold",
+   "converter": "Numerical"
+  },
+  {
+   "index": 69,
+   "name": "Port1DTRDCD",
+   "control": "cbPort1DTRDCD",
+   "converter": "Logical"
+  },
+  {
+   "index": 70,
+   "name": "GeneratorRunOutput",
+   "control": "cbGeneratorRunOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 71,
+   "name": "GeneratorStartOutput",
+   "control": "cbGeneratorStartOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 72,
+   "name": "AbsorbOutput",
+   "control": "cbAbsorbOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 73,
+   "name": "FloatOutput",
+   "control": "cbFloatOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 74,
+   "name": "TimedAssertOutput",
+   "control": "cbTimedAssertOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 75,
+   "name": "TimeSchedule1",
+   "control": "cbTimeSchedule1",
+   "converter": "Logical"
+  },
+  {
+   "index": 76,
+   "name": "TimeSchedule1Day",
+   "control": "cbTimeSchedule1Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 77,
+   "name": "TimeSchedule1AssertTime",
+   "control": "dtpTimeSchedule1AssertTime",
+   "converter": "Time"
+  },
+  {
+   "index": 78,
+   "name": "TimeSchedule1DeassertTime",
+   "control": "dtpTimeSchedule1DeassertTime",
+   "converter": "Time"
+  },
+  {
+   "index": 79,
+   "name": "TimeSchedule2",
+   "control": "cbTimeSchedule2",
+   "converter": "Logical"
+  },
+  {
+   "index": 80,
+   "name": "TimeSchedule2Day",
+   "control": "cbTimeSchedule2Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 81,
+   "name": "TimeSchedule2AssertTime",
+   "control": "dtpTimeSchedule2AssertTime",
+   "converter": "Time"
+  },
+  {
+   "index": 82,
+   "name": "TimeSchedule2DeassertTime",
+   "control": "dtpTimeSchedule2DeassertTime",
+   "converter": "Time"
+  },
+  {
+   "index": 83,
+   "name": "TimeSchedule3",
+   "control": "cbTimeSchedule3",
+   "converter": "Logical"
+  },
+  {
+   "index": 84,
+   "name": "TimeSchedule3Day",
+   "control": "cbTimeSchedule3Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 85,
+   "name": "TimeSchedule3AssertTime",
+   "control": "dtpTimeSchedule3AssertTime",
+   "converter": "Time"
+  },
+  {
+   "index": 86,
+   "name": "TimeSchedule3DeassertTime",
+   "control": "dtpTimeSchedule3DeassertTime",
+   "converter": "Time"
+  },
+  {
+   "index": 87,
+   "name": "TimeSchedule4",
+   "control": "cbTimeSchedule4",
+   "converter": "Logical"
+  },
+  {
+   "index": 88,
+   "name": "TimeSchedule4Day",
+   "control": "cbTimeSchedule4Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 89,
+   "name": "TimeSchedule4AssertTime",
+   "control": "dtpTimeSchedule4AssertTime",
+   "converter": "Time"
+  },
+  {
+   "index": 90,
+   "name": "TimeSchedule4DeassertTime",
+   "control": "dtpTimeSchedule4DeassertTime",
+   "converter": "Time"
+  },
+  {
+   "index": 91,
+   "name": "BatteryVoltageOutput",
+   "control": "cbBatteryVoltageOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 92,
+   "name": "BatteryVoltageAssertLevel",
+   "control": "nudBatteryVoltageAssertLevel",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 93,
+   "name": "BatteryVoltageDeassertLevel",
+   "control": "nudBatteryVoltageDeassertLevel",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 94,
+   "name": "SoCOutput",
+   "control": "cbSoCOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 95,
+   "name": "SocAssertLevel",
+   "control": "nudSocAssertLevel",
+   "converter": "Numerical"
+  },
+  {
+   "index": 96,
+   "name": "SocDeassertLevel",
+   "control": "nudSocDeassertLevel",
+   "converter": "Numerical"
+  },
+  {
+   "index": 97,
+   "name": "DigitalControlOutput",
+   "control": "cbDigitalControlOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 98,
+   "name": "AnalogControlOutput",
+   "control": "cbAnalogControlOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 99,
+   "name": "AlarmType",
+   "control": "cbAlarmType",
+   "converter": "AlarmType"
+  },
+  {
+   "index": 100,
+   "name": "AlarmOutput",
+   "control": "cbAlarmOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 101,
+   "name": "AcLoadKwhCtrlAssertThreshold",
+   "control": "nudAcLoadKwhCtrlAssertThreshold",
+   "converter": "Numerical"
+  },
+  {
+   "index": 102,
+   "name": "AcLoadKwhCtrlOutput",
+   "control": "cbAcLoadKwhCtrlOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 103,
+   "name": "AcLoadKwCtrlAssertThreshold",
+   "control": "nudAcLoadKwCtrlAssertThreshold",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 104,
+   "name": "AcLoadKwCtrlOutput",
+   "control": "cbAcLoadKwCtrlOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 105,
+   "name": "FloatReturnInput",
+   "control": "cbFloatReturnInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 106,
+   "name": "GeneratorFaultInput",
+   "control": "cbGeneratorFaultInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 107,
+   "name": "GeneratorLowFuelInput",
+   "control": "cbGeneratorLowFuelInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 108,
+   "name": "GeneratorNoFuelInput",
+   "control": "cbGeneratorNoFuelInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 109,
+   "name": "GeneratorAvailableInput",
+   "control": "cbGeneratorAvailableInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 110,
+   "name": "DigitalControlState",
+   "control": "cbDigitalControlState",
+   "converter": "ControlState"
+  },
+  {
+   "index": 111,
+   "name": "DigitalControlInput",
+   "control": "cbDigitalControlInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 112,
+   "name": "AcInputPowerLevelInput",
+   "control": "cbAcInputPowerLevelInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 113,
+   "name": "StatOfChargeShutdownSoC",
+   "control": "nudStatOfChargeShutdownSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 114,
+   "name": "AnalogControlAssertLevel",
+   "control": "nudAnalogControlAssertLevel",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 115,
+   "name": "AnalogControlDeassertLevel",
+   "control": "nudAnalogControlDeassertLevel",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 116,
+   "name": "AnalogControlInput",
+   "control": "cbAnalogControlInput",
+   "converter": "AnalogueInputSelection"
+  },
+  {
+   "index": 117,
+   "name": "MidPointRange",
+   "control": "nudMidPointRange",
+   "converter": "Numerical"
+  },
+  {
+   "index": 118,
+   "name": "ScalingShunt1MaxCurrent",
+   "control": "nudScalingShunt1MaxCurrent",
+   "converter": "Numerical"
+  },
+  {
+   "index": 119,
+   "name": "ScalingShunt1MaxVoltage",
+   "control": "nudScalingShunt1MaxVoltage",
+   "converter": "Numerical"
+  },
+  {
+   "index": 120,
+   "name": "ScalingShunt2MaxCurrent",
+   "control": "nudScalingShunt2MaxCurrent",
+   "converter": "Numerical"
+  },
+  {
+   "index": 121,
+   "name": "ScalingShunt2MaxVoltage",
+   "control": "nudScalingShunt2MaxVoltage",
+   "converter": "Numerical"
+  },
+  {
+   "index": 122,
+   "name": "ACInputLockout",
+   "control": "cbACInputLockout",
+   "converter": "Logical"
+  },
+  {
+   "index": 123,
+   "name": "ACInputStartTime",
+   "control": "dtpACInputStartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 124,
+   "name": "ACInputStopTime",
+   "control": "dtpACInputStopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 125,
+   "name": "InverterLockOutSchedule1",
+   "control": "cbInverterLockOutSchedule1",
+   "converter": "Logical"
+  },
+  {
+   "index": 126,
+   "name": "InverterLockoutSchedule1StartTime",
+   "control": "dtpInverterLockoutSchedule1StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 127,
+   "name": "InverterLockoutSchedule1StopTime",
+   "control": "dtpInverterLockoutSchedule1StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 128,
+   "name": "SystemFaultRecovery",
+   "control": "cbSystemFaultRecovery",
+   "converter": "Logical"
+  },
+  {
+   "index": 129,
+   "name": "NominalFrequency",
+   "control": "cbNominalFrequency",
+   "converter": "Frequency"
+  },
+  {
+   "index": 130,
+   "name": "StateOfChargeShutdown",
+   "control": "cbStateOfChargeShutdown",
+   "converter": "Logical"
+  },
+  {
+   "index": 131,
+   "name": "AcLoadHoldOn",
+   "control": "nudAcLoadHoldOn",
+   "converter": "Numerical"
+  },
+  {
+   "index": 132,
+   "name": "ExternalContactorCT",
+   "control": "cbExternalContactorCT",
+   "converter": "Logical"
+  },
+  {
+   "index": 133,
+   "name": "ExternalCTRatio",
+   "control": "nudExternalCTRatio",
+   "converter": "CTRatio"
+  },
+  {
+   "index": 134,
+   "name": "Port1Baudrate",
+   "control": "cbPort1Baudrate",
+   "converter": "BaudRate"
+  },
+  {
+   "index": 135,
+   "name": "Port1AccInput",
+   "control": "cbPort1AccInput",
+   "converter": "AccPort"
+  },
+  {
+   "index": 136,
+   "name": "HighBatteryAlert",
+   "control": "cbHighBatteryAlert",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 137,
+   "name": "RemoteAcInputContactor",
+   "control": "cbRemoteAcInputContactor",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 138,
+   "name": "GeneratorCoolDown",
+   "control": "nudGeneratorCoolDown",
+   "converter": "Numerical"
+  },
+  {
+   "index": 139,
+   "name": "GeneratorWarmUp",
+   "control": "nudGeneratorWarmUp",
+   "converter": "Numerical"
+  },
+  {
+   "index": 140,
+   "name": "Port2Baudrate",
+   "control": "cbPort2Baudrate",
+   "converter": "BaudRate"
+  },
+  {
+   "index": 141,
+   "name": "FloatReturnInputEdge",
+   "control": "cbFloatReturnInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 142,
+   "name": "LowBattShdwnOverrride",
+   "control": "cbLowBattShdwnOverrride",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 144,
+   "name": "SoCRenewPrefferedPeriod",
+   "control": "cbSoCRenewPrefferedPeriod",
+   "converter": "Logical"
+  },
+  {
+   "index": 145,
+   "name": "SoCRenewPrefferedPeriodStartTime",
+   "control": "dtpSoCRenewPrefferedPeriodStartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 146,
+   "name": "SoCRenewPrefferedPeriodStopTime",
+   "control": "dtpSoCRenewPrefferedPeriodStopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 147,
+   "name": "SoCRenewPrefferedPeriodStartSoC",
+   "control": "nudSoCRenewPrefferedPeriodStartSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 148,
+   "name": "SoCRenewPrefferedPeriodStopSoC",
+   "control": "nudSoCRenewPrefferedPeriodStopSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 149,
+   "name": "LowSoCToStartGen",
+   "control": "cbLowSoCToStartGen",
+   "converter": "Logical"
+  },
+  {
+   "index": 150,
+   "name": "LowSoCToStartGenStartSoC",
+   "control": "nudLowSoCToStartGenStartSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 151,
+   "name": "LowSoCToStartGenStopSoC",
+   "control": "nudLowSoCToStartGenStopSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 152,
+   "name": "GenLockOut",
+   "control": "cbGenLockOut",
+   "converter": "Logical"
+  },
+  {
+   "index": 153,
+   "name": "GenLockOutStartTime",
+   "control": "dtpGenLockOutStartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 154,
+   "name": "GenLockOutStopTime",
+   "control": "dtpGenLockOutStopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 155,
+   "name": "YearToDateRollOverDate",
+   "control": "dtpYearToDateRollOverDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 158,
+   "name": "MaxPeakACVoltage",
+   "control": "nudMaxPeakACVoltage",
+   "converter": "Numerical"
+  },
+  {
+   "index": 159,
+   "name": "OveridePartialSoCStop",
+   "control": "cbOveridePartialSoCStop",
+   "converter": "Logical"
+  },
+  {
+   "index": 160,
+   "name": "GeneratorFaultInputEdge",
+   "control": "cbGeneratorFaultInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 161,
+   "name": "GeneratorLowFuelInputEdge",
+   "control": "cbGeneratorLowFuelInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 162,
+   "name": "GeneratorNoFuelInputEdge",
+   "control": "cbGeneratorNoFuelInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 163,
+   "name": "GeneratorAvailableInputEdge",
+   "control": "cbGeneratorAvailableInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 164,
+   "name": "DigitalControlInputEdge",
+   "control": "cbDigitalControlInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 165,
+   "name": "AcInputPowerLevelInputEdge",
+   "control": "cbAcInputPowerLevelInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 166,
+   "name": "LowBattShdwnOverrrideEdge",
+   "control": "cbLowBattShdwnOverrrideEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 167,
+   "name": "GeneratorWaitExternalACTime",
+   "control": "nudGeneratorWaitExternalACTime",
+   "converter": "Numerical"
+  },
+  {
+   "index": 168,
+   "name": "GeneratorRemoteStart",
+   "control": "cbGeneratorRemoteStart",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 169,
+   "name": "GeneratorRemoteStartEdge",
+   "control": "cbGeneratorRemoteStartEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 170,
+   "name": "cb5MinAveBatteryPowerToStartGen",
+   "control": "cb5MinAveBatteryPowerToStartGen",
+   "converter": "Logical"
+  },
+  {
+   "index": 171,
+   "name": "cb15MinAveBatteryPowerToStartGen",
+   "control": "cb15MinAveBatteryPowerToStartGen",
+   "converter": "Logical"
+  },
+  {
+   "index": 173,
+   "name": "EqualiseOutput",
+   "control": "cbEqualiseOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 174,
+   "name": "InverterLockOutSchedule1Day",
+   "control": "cbInverterLockOutSchedule1Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 175,
+   "name": "InverterLockOutSchedule2",
+   "control": "cbInverterLockOutSchedule2",
+   "converter": "Logical"
+  },
+  {
+   "index": 176,
+   "name": "InverterLockOutSchedule2Day",
+   "control": "cbInverterLockOutSchedule2Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 177,
+   "name": "InverterLockoutSchedule2StartTime",
+   "control": "dtpInverterLockoutSchedule2StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 178,
+   "name": "InverterLockoutSchedule2StopTime",
+   "control": "dtpInverterLockoutSchedule2StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 179,
+   "name": "InverterLockOutSchedule3",
+   "control": "cbInverterLockOutSchedule3",
+   "converter": "Logical"
+  },
+  {
+   "index": 180,
+   "name": "InverterLockOutSchedule3Day",
+   "control": "cbInverterLockOutSchedule3Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 181,
+   "name": "InverterLockoutSchedule3StartTime",
+   "control": "dtpInverterLockoutSchedule3StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 182,
+   "name": "InverterLockoutSchedule3StopTime",
+   "control": "dtpInverterLockoutSchedule3StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 183,
+   "name": "InverterLockOutSchedule4",
+   "control": "cbInverterLockOutSchedule4",
+   "converter": "Logical"
+  },
+  {
+   "index": 184,
+   "name": "InverterLockOutSchedule4Day",
+   "control": "cbInverterLockOutSchedule4Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 185,
+   "name": "InverterLockoutSchedule4StartTime",
+   "control": "dtpInverterLockoutSchedule4StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 186,
+   "name": "InverterLockoutSchedule4StopTime",
+   "control": "dtpInverterLockoutSchedule4StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 187,
+   "name": "InitialOutput",
+   "control": "cbInitialOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 188,
+   "name": "BulkOutput",
+   "control": "cbBulkOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 189,
+   "name": "InitialInput",
+   "control": "cbInitialInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 190,
+   "name": "InitialInputEdge",
+   "control": "cbInitialInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 191,
+   "name": "BulkInput",
+   "control": "cbBulkInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 192,
+   "name": "BulkInputEdge",
+   "control": "cbBulkInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 193,
+   "name": "AbsorbInput",
+   "control": "cbAbsorbInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 194,
+   "name": "AbsorbInputEdge",
+   "control": "cbAbsorbInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 195,
+   "name": "EqualiseInput",
+   "control": "cbEqualiseInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 196,
+   "name": "EqualiseInputEdge",
+   "control": "cbEqualiseInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 197,
+   "name": "PreSynchGeneratorWarmUp",
+   "control": "nudPreSynchGeneratorWarmUp",
+   "converter": "Numerical"
+  },
+  {
+   "index": 198,
+   "name": "ChargerLockoutInput",
+   "control": "cbChargerLockoutInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 199,
+   "name": "ChargerLockoutInputEdge",
+   "control": "cbChargerLockoutInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 200,
+   "name": "KacoFallback",
+   "control": "cbKacoFallback",
+   "converter": "Logical"
+  },
+  {
+   "index": 201,
+   "name": "BatterylessMode",
+   "control": "cbBatterylessMode",
+   "converter": "Logical"
+  },
+  {
+   "index": 202,
+   "name": "IslandingPowerLimit",
+   "control": "nudIslandingPowerLimit",
+   "converter": "InputPower"
+  },
+  {
+   "index": 203,
+   "name": "AcSourceInToleranceOutput",
+   "control": "cbAcSourceInToleranceOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 204,
+   "name": "ZeroPercentAcCoupledOutput",
+   "control": "cbZeroPercentAcCoupledOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 205,
+   "name": "AdvancedMultiPhaseStructure",
+   "control": "cbAdvancedMultiPhaseStructure",
+   "converter": "AdvancedMultiplePhaseStructure"
+  },
+  {
+   "index": 206,
+   "name": "AdvancedMultiPhasePhase_L1",
+   "control": "cbAdvancedMultiPhasePhase_L1",
+   "converter": "AdvancedMultiplePhasePhase"
+  },
+  {
+   "index": 207,
+   "name": "AdvancedMultiPhaseThreePhaseACSourceBalanced",
+   "control": "cbAdvancedMultiPhaseThreePhaseACSourceBalanced",
+   "converter": "ThreePhaseAcSourceBalanced"
+  },
+  {
+   "index": 209,
+   "name": "ExternalContactorPullInTime",
+   "control": "nudExternalContactorPullInTime",
+   "converter": "Numerical"
+  },
+  {
+   "index": 210,
+   "name": "ExternalContactorReleaseTime",
+   "control": "nudExternalContactorReleaseTime",
+   "converter": "Numerical"
+  },
+  {
+   "index": 213,
+   "name": "ModbusRtuPort",
+   "control": "cbModbusRtuPort",
+   "converter": "ModbusPort"
+  },
+  {
+   "index": 214,
+   "name": "ModbusRtuAddress",
+   "control": "nudModbusRtuAddress",
+   "converter": "Numerical"
+  }
+ ],
+ "AppType": [
+  {
+   "index": 0,
+   "name": "PeriodicEqualise",
+   "control": "cbPeriodicEqualise",
+   "converter": "PeriodicEqualise"
+  },
+  {
+   "index": 1,
+   "name": "GeneratorControl",
+   "control": "cbGeneratorControl",
+   "converter": "Logical"
+  },
+  {
+   "index": 2,
+   "name": "BattMidPointStartGenerator",
+   "control": "cbBattMidPointStartGenerator",
+   "converter": "Logical"
+  },
+  {
+   "index": 3,
+   "name": "GeneratorExercise",
+   "control": "cbGeneratorExercise",
+   "converter": "Logical"
+  },
+  {
+   "index": 4,
+   "name": "ExternalRegulatorBypass",
+   "control": "cbExternalRegulatorBypass",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 5,
+   "name": "ExternalRegulatorControl",
+   "control": "cbExternalRegulatorControl",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 6,
+   "name": "ExternalMaximumPowerPoint",
+   "control": "cbExternalMaximumPowerPoint",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 7,
+   "name": "MidpointMonitoringEnable",
+   "control": "cbMidpointMonitoringEnable",
+   "converter": "Logical"
+  },
+  {
+   "index": 8,
+   "name": "MidpointEqualiseRequest",
+   "control": "cbMidpointEqualiseRequest",
+   "converter": "Logical"
+  },
+  {
+   "index": 9,
+   "name": "Shunt1Name",
+   "control": "cbShunt1Name",
+   "converter": "ShuntName"
+  },
+  {
+   "index": 10,
+   "name": "Shunt2Name",
+   "control": "cbShunt2Name",
+   "converter": "ShuntName"
+  },
+  {
+   "index": 11,
+   "name": "Region",
+   "control": "cbRegion",
+   "converter": "Region"
+  },
+  {
+   "index": 12,
+   "name": "ACVMin",
+   "control": "nudACVMin",
+   "converter": "NumericalAndChangeSign"
+  },
+  {
+   "index": 13,
+   "name": "ACVMax",
+   "control": "nudACVMax",
+   "converter": "Numerical"
+  },
+  {
+   "index": 14,
+   "name": "ACFreqMin",
+   "control": "nudACFreqMin",
+   "converter": "NumericalAndChangeSign"
+  },
+  {
+   "index": 15,
+   "name": "ACFreqMax",
+   "control": "nudACFreqMax",
+   "converter": "Numerical"
+  },
+  {
+   "index": 16,
+   "name": "UnitFaultRecovery",
+   "control": "cbUnitFaultRecovery",
+   "converter": "Logical"
+  },
+  {
+   "index": 17,
+   "name": "Econo",
+   "control": "cbEcono",
+   "converter": "Logical"
+  },
+  {
+   "index": 18,
+   "name": "AllowExportInput",
+   "control": "cbAllowExportInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 19,
+   "name": "AllowExportInputEdge",
+   "control": "cbAllowExportInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 20,
+   "name": "GridAvailableInput",
+   "control": "cbGridAvailableInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 21,
+   "name": "GridAvailableInputEdge",
+   "control": "cbGridAvailableInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 22,
+   "name": "BackupSelectOutput",
+   "control": "cbBackupSelectOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 23,
+   "name": "GridFailBackupEnable",
+   "control": "cbGridFailBackupEnable",
+   "converter": "Logical"
+  },
+  {
+   "index": 24,
+   "name": "AcChargerLockoutSchedule1",
+   "control": "cbAcChargerLockoutSchedule1",
+   "converter": "Logical"
+  },
+  {
+   "index": 25,
+   "name": "AcChargerLockoutSchedule1Day",
+   "control": "cbAcChargerLockoutSchedule1Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 26,
+   "name": "AcChargerLockoutSchedule1StartTime",
+   "control": "dtpAcChargerLockoutSchedule1StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 27,
+   "name": "AcChargerLockoutSchedule1StopTime",
+   "control": "dtpAcChargerLockoutSchedule1StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 28,
+   "name": "AcChargerLockoutSchedule2",
+   "control": "cbAcChargerLockoutSchedule2",
+   "converter": "Logical"
+  },
+  {
+   "index": 29,
+   "name": "AcChargerLockoutSchedule2Day",
+   "control": "cbAcChargerLockoutSchedule2Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 30,
+   "name": "AcChargerLockoutSchedule2StartTime",
+   "control": "dtpAcChargerLockoutSchedule2StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 31,
+   "name": "AcChargerLockoutSchedule2StopTime",
+   "control": "dtpAcChargerLockoutSchedule2StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 32,
+   "name": "AcChargerLockoutSchedule3",
+   "control": "cbAcChargerLockoutSchedule3",
+   "converter": "Logical"
+  },
+  {
+   "index": 33,
+   "name": "AcChargerLockoutSchedule3Day",
+   "control": "cbAcChargerLockoutSchedule3Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 34,
+   "name": "AcChargerLockoutSchedule3StartTime",
+   "control": "dtpAcChargerLockoutSchedule3StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 35,
+   "name": "AcChargerLockoutSchedule3StopTime",
+   "control": "dtpAcChargerLockoutSchedule3StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 36,
+   "name": "AcChargerLockoutSchedule4",
+   "control": "cbAcChargerLockoutSchedule4",
+   "converter": "Logical"
+  },
+  {
+   "index": 37,
+   "name": "AcChargerLockoutSchedule4Day",
+   "control": "cbAcChargerLockoutSchedule4Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 38,
+   "name": "AcChargerLockoutSchedule4StartTime",
+   "control": "dtpAcChargerLockoutSchedule4StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 39,
+   "name": "AcChargerLockoutSchedule4StopTime",
+   "control": "dtpAcChargerLockoutSchedule4StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 40,
+   "name": "AcInputSchedule1",
+   "control": "cbAcInputSchedule1",
+   "converter": "Logical"
+  },
+  {
+   "index": 41,
+   "name": "AcInputSchedule1Power",
+   "control": "nudAcInputSchedule1Power",
+   "converter": "Numerical"
+  },
+  {
+   "index": 42,
+   "name": "AcInputSchedule1Day",
+   "control": "cbAcInputSchedule1Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 43,
+   "name": "AcInputSchedule1StartTime",
+   "control": "dtpAcInputSchedule1StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 44,
+   "name": "AcInputSchedule1StopTime",
+   "control": "dtpAcInputSchedule1StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 45,
+   "name": "AcInputSchedule2",
+   "control": "cbAcInputSchedule2",
+   "converter": "Logical"
+  },
+  {
+   "index": 46,
+   "name": "AcInputSchedule2Power",
+   "control": "nudAcInputSchedule2Power",
+   "converter": "Numerical"
+  },
+  {
+   "index": 47,
+   "name": "AcInputSchedule2Day",
+   "control": "cbAcInputSchedule2Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 48,
+   "name": "AcInputSchedule2StartTime",
+   "control": "dtpAcInputSchedule2StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 49,
+   "name": "AcInputSchedule2StopTime",
+   "control": "dtpAcInputSchedule2StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 50,
+   "name": "AcInputSchedule3",
+   "control": "cbAcInputSchedule3",
+   "converter": "Logical"
+  },
+  {
+   "index": 51,
+   "name": "AcInputSchedule3Power",
+   "control": "nudAcInputSchedule3Power",
+   "converter": "Numerical"
+  },
+  {
+   "index": 52,
+   "name": "AcInputSchedule3Day",
+   "control": "cbAcInputSchedule3Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 53,
+   "name": "AcInputSchedule3StartTime",
+   "control": "dtpAcInputSchedule3StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 54,
+   "name": "AcInputSchedule3StopTime",
+   "control": "dtpAcInputSchedule3StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 55,
+   "name": "AcInputSchedule4",
+   "control": "cbAcInputSchedule4",
+   "converter": "Logical"
+  },
+  {
+   "index": 56,
+   "name": "AcInputSchedule4Power",
+   "control": "nudAcInputSchedule4Power",
+   "converter": "Numerical"
+  },
+  {
+   "index": 57,
+   "name": "AcInputSchedule4Day",
+   "control": "cbAcInputSchedule4Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 58,
+   "name": "AcInputSchedule4StartTime",
+   "control": "dtpAcInputSchedule4StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 59,
+   "name": "AcInputSchedule4StopTime",
+   "control": "dtpAcInputSchedule4StopTime",
+   "converter": "StopTimeWithoutDisable"
+  },
+  {
+   "index": 60,
+   "name": "AlternativeACVMin",
+   "control": "nudAlternativeACVMin",
+   "converter": "NumericalAndChangeSign"
+  },
+  {
+   "index": 61,
+   "name": "AlternativeACVMax",
+   "control": "nudAlternativeACVMax",
+   "converter": "Numerical"
+  },
+  {
+   "index": 62,
+   "name": "AlternativeACFreqMin",
+   "control": "nudAlternativeACFreqMin",
+   "converter": "NumericalAndChangeSign"
+  },
+  {
+   "index": 63,
+   "name": "AlternativeACFreqMax",
+   "control": "nudAlternativeACFreqMax",
+   "converter": "Numerical"
+  },
+  {
+   "index": 64,
+   "name": "PeriodicRecharge",
+   "control": "cbPeriodicRecharge",
+   "converter": "Logical"
+  },
+  {
+   "index": 65,
+   "name": "GridFailBeeper",
+   "control": "cbGridFailBeeper",
+   "converter": "Logical"
+  },
+  {
+   "index": 66,
+   "name": "KacoPort",
+   "control": "cbKacoPort",
+   "converter": "Port"
+  },
+  {
+   "index": 67,
+   "name": "PowerUpMode",
+   "control": "cbPowerUpMode",
+   "converter": "Mode"
+  },
+  {
+   "index": 68,
+   "name": "MultipleChargers",
+   "control": "cbMultipleChargers",
+   "converter": "Logical"
+  },
+  {
+   "index": 69,
+   "name": "MultiplePhase",
+   "control": "cbMultiplePhase",
+   "converter": "MultiplePhase"
+  },
+  {
+   "index": 70,
+   "name": "ExportCapacityLimitPower",
+   "control": "nudExportCapacityLimitPower",
+   "converter": "InputPower"
+  },
+  {
+   "index": 71,
+   "name": "AcCoupledInverterControl",
+   "control": "cbAcCoupledInverterControl",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 72,
+   "name": "NumberOfKacosConnected",
+   "control": "nudNumberOfKacosConnected",
+   "converter": "Numerical"
+  },
+  {
+   "index": 73,
+   "name": "ExportCapacityLimitEnable",
+   "control": "cbExportCapacityLimitEnable",
+   "converter": "Logical"
+  },
+  {
+   "index": 75,
+   "name": "PowerOverrideInput",
+   "control": "cbPowerOverrideInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 76,
+   "name": "PowerOverrideInputEdge",
+   "control": "cbPowerOverrideInputEdge",
+   "converter": "EdgeSelection"
+  },
+  {
+   "index": 77,
+   "name": "AcChargerLockoutScheduleMode",
+   "control": "cbAcChargerLockoutScheduleMode",
+   "converter": "Logical"
+  },
+  {
+   "index": 79,
+   "name": "GenericAcCoupling",
+   "control": "cbGenericAcCoupling",
+   "converter": "GenericAcCoupling"
+  },
+  {
+   "index": 80,
+   "name": "ParallelConnectMode",
+   "control": "cbParallelConnectMode",
+   "converter": "Parallel"
+  },
+  {
+   "index": 82,
+   "name": "DisableSourcePreTrip",
+   "control": "cbDisableSourcePreTrip",
+   "converter": "Logical"
+  },
+  {
+   "index": 85,
+   "name": "SourceRmsVoltage10MinDisconnectTrip",
+   "control": "nudSourceRmsVoltage10MinDisconnectTrip",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 86,
+   "name": "PowerFactorCorrectionMode",
+   "control": "cbPowerFactorCorrectionMode",
+   "converter": "PowerFactorMode"
+  },
+  {
+   "index": 87,
+   "name": "KacoExportPreTripPowerLimit",
+   "control": "nudKacoExportPreTripPowerLimit",
+   "converter": "InputPower"
+  },
+  {
+   "index": 88,
+   "name": "KacoExportPreTripTime",
+   "control": "nudKacoExportPreTripTime",
+   "converter": "Numerical"
+  },
+  {
+   "index": 89,
+   "name": "AcCoupledFrequencyRampLimit",
+   "control": "nudAcCoupledFrequencyRampLimit",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 90,
+   "name": "AcCoupledFrequencyRampRate",
+   "control": "nudAcCoupledFrequencyRampRate",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 91,
+   "name": "AcCoupledAlarmOutput",
+   "control": "cbAcCoupledAlarmOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 92,
+   "name": "InverterLockoutInput",
+   "control": "cbInverterLockoutInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 93,
+   "name": "InverterLockoutInputEdge",
+   "control": "cbInverterLockoutInputEdge",
+   "converter": "LevelSelection"
+  },
+  {
+   "index": 94,
+   "name": "ResyncDelay",
+   "control": "nudResyncDelay",
+   "converter": "Numerical"
+  },
+  {
+   "index": 95,
+   "name": "VacBatteryCharging0Percent",
+   "control": "nudVacBatteryCharging0Percent",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 96,
+   "name": "VacBatteryCharging100Percent",
+   "control": "nudVacBatteryCharging100Percent",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 97,
+   "name": "ExportRampTime",
+   "control": "nudExportRampTime",
+   "converter": "NumericalWhichIsStoredInQuinquadeciUnits"
+  },
+  {
+   "index": 98,
+   "name": "ExportHighFrequencyRampEnd",
+   "control": "nudExportHighFrequencyRampEnd",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 99,
+   "name": "KacoExportPreTripDirection",
+   "control": "cbKacoExportPreTripDirection",
+   "converter": "ExportImport"
+  },
+  {
+   "index": 101,
+   "name": "MpptNumber",
+   "control": "nudMpptNumber",
+   "converter": "Numerical"
+  },
+  {
+   "index": 102,
+   "name": "VoltWattVoltageStart",
+   "control": "nudVoltWattVoltageStart",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 103,
+   "name": "VoltWattVoltageStop",
+   "control": "nudVoltWattVoltageStop",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 104,
+   "name": "VoltVarLowVoltageStop",
+   "control": "nudVoltVarLowVoltageStop",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 105,
+   "name": "VoltVarLowVoltageStart",
+   "control": "nudVoltVarLowVoltageStart",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 106,
+   "name": "VoltVarHighVoltageStart",
+   "control": "nudVoltVarHighVoltageStart",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 107,
+   "name": "VoltVarHighVoltageStop",
+   "control": "nudVoltVarHighVoltageStop",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 108,
+   "name": "LeadingVarMax",
+   "control": "nudLeadingVarMax",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 109,
+   "name": "LaggingVarMax",
+   "control": "nudLaggingVarMax",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 112,
+   "name": "GenerationManagementRampUp",
+   "control": "nudGenerationManagementRampUp",
+   "converter": "Numerical"
+  },
+  {
+   "index": 113,
+   "name": "GenerationManagementRampDown",
+   "control": "nudGenerationManagementRampDown",
+   "converter": "Numerical"
+  },
+  {
+   "index": 114,
+   "name": "GenerationManagementMinimumSoc",
+   "control": "nudGenerationManagementMinimumSoc",
+   "converter": "NumericalAndFitNud"
+  },
+  {
+   "index": 115,
+   "name": "GenerationManagementMaximumExportPower",
+   "control": "nudGenerationManagementMaximumExportPower",
+   "converter": "NumericalWhichIsStoredInCentiUnits"
+  },
+  {
+   "index": 116,
+   "name": "Drm3ReactivePower",
+   "control": "nudDrm3ReactivePower",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 117,
+   "name": "Drm7ReactivePower",
+   "control": "nudDrm7ReactivePower",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 119,
+   "name": "ChargeLowFrequencyRampEnd",
+   "control": "nudChargeLowFrequencyRampEnd",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 120,
+   "name": "AcCoupledPowerReductionFromAcSource",
+   "control": "nudAcCoupledPowerReductionFromAcSource",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 121,
+   "name": "ACVMinConnect",
+   "control": "nudACVMinConnect",
+   "converter": "NumericalWhichIsStoredInDeciUnitsAndChangeSign"
+  },
+  {
+   "index": 122,
+   "name": "ACVMaxConnect",
+   "control": "nudACVMaxConnect",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 123,
+   "name": "ACFreqMinConnect",
+   "control": "nudACFreqMinConnect",
+   "converter": "NumericalWhichIsStoredInDeciUnitsAndChangeSign"
+  },
+  {
+   "index": 124,
+   "name": "ACFreqMaxConnect",
+   "control": "nudACFreqMaxConnect",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  }
+ ],
+ "BattType": [
+  {
+   "index": 0,
+   "name": "LowDcShutDown0PercentLoad",
+   "control": "nudLowDcShutDown0PercentLoad",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 1,
+   "name": "LowDcShutDown100PercentLoad",
+   "control": "nudLowDcShutDown100PercentLoad",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 2,
+   "name": "LowDcShutDownRecovery",
+   "control": "nudLowDcShutDownRecovery",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 3,
+   "name": "HighDcAlert",
+   "control": "nudHighDcAlert",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 4,
+   "name": "HighDcAlertClear",
+   "control": "nudHighDcAlertClear",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 5,
+   "name": "InitialReturnVoltage",
+   "control": "nudInitialReturnVoltage",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 6,
+   "name": "MaximumChargeCapability",
+   "control": "nudMaximumChargeCapability",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 7,
+   "name": "InitialChargeV",
+   "control": "nudInitialChargeV",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 8,
+   "name": "InitialChargeI",
+   "control": "nudInitialChargeI",
+   "converter": "Numerical"
+  },
+  {
+   "index": 9,
+   "name": "InitialChargeTime",
+   "control": "nudInitialChargeTime",
+   "converter": "Numerical"
+  },
+  {
+   "index": 10,
+   "name": "BulkChargeV",
+   "control": "nudBulkChargeV",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 11,
+   "name": "BulkChargeI",
+   "control": "nudBulkChargeI",
+   "converter": "Numerical"
+  },
+  {
+   "index": 12,
+   "name": "BulkChargeTime",
+   "control": "nudBulkChargeTime",
+   "converter": "Numerical"
+  },
+  {
+   "index": 13,
+   "name": "AbsorbChargeV",
+   "control": "nudAbsorbChargeV",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 14,
+   "name": "AbsorbChargeI",
+   "control": "nudAbsorbChargeI",
+   "converter": "Numerical"
+  },
+  {
+   "index": 15,
+   "name": "AbsorbIChange",
+   "control": "nudAbsorbIChange",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 16,
+   "name": "AbsorbChangeTime",
+   "control": "nudAbsorbChangeTime",
+   "converter": "Numerical"
+  },
+  {
+   "index": 17,
+   "name": "AbsorbMaxTime",
+   "control": "nudAbsorbMaxTime",
+   "converter": "Numerical"
+  },
+  {
+   "index": 18,
+   "name": "FloatV",
+   "control": "nudFloatV",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 19,
+   "name": "FloatI",
+   "control": "nudFloatI",
+   "converter": "Numerical"
+  },
+  {
+   "index": 20,
+   "name": "FloatReturn",
+   "control": "nudFloatReturn",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 21,
+   "name": "EqualiseV",
+   "control": "nudEqualiseV",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 22,
+   "name": "EqualiseI",
+   "control": "nudEqualiseI",
+   "converter": "Numerical"
+  },
+  {
+   "index": 23,
+   "name": "EqualiseTime",
+   "control": "nudEqualiseTime",
+   "converter": "NumericalWhichIsDisplayedInHoursButStoredInMinutes"
+  },
+  {
+   "index": 24,
+   "name": "MinimumCompensationTemperature",
+   "control": "nudMinimumCompensationTemperature",
+   "converter": "NumericalWithOffSetOf10000"
+  },
+  {
+   "index": 25,
+   "name": "ReferenceTemperatureA",
+   "control": "nudReferenceTemperatureA",
+   "converter": "NumericalWithOffSetOf10000"
+  },
+  {
+   "index": 26,
+   "name": "ReferenceTemperatureB",
+   "control": "nudReferenceTemperatureB",
+   "converter": "NumericalWithOffSetOf10000"
+  },
+  {
+   "index": 27,
+   "name": "MaximumCompensationTemperature",
+   "control": "nudMaximumCompensationTemperature",
+   "converter": "NumericalWithOffSetOf10000"
+  },
+  {
+   "index": 28,
+   "name": "ReferenceATemperatureCoefficent",
+   "control": "nudReferenceATemperatureCoefficent",
+   "converter": "Numerical_TemperatureCoefficient"
+  },
+  {
+   "index": 29,
+   "name": "ReferenceBTemperatureCoefficent",
+   "control": "nudReferenceBTemperatureCoefficent",
+   "converter": "Numerical_TemperatureCoefficient"
+  },
+  {
+   "index": 30,
+   "name": "InitialBatteryChargeEfficiency",
+   "control": "nudInitialBatteryChargeEfficiency",
+   "converter": "Numerical"
+  },
+  {
+   "index": 31,
+   "name": "BulkBatteryChargeEfficiency",
+   "control": "nudBulkBatteryChargeEfficiency",
+   "converter": "Numerical"
+  },
+  {
+   "index": 32,
+   "name": "AbsorbBatteryChargeEfficiency",
+   "control": "nudAbsorbBatteryChargeEfficiency",
+   "converter": "Numerical"
+  },
+  {
+   "index": 33,
+   "name": "MaxDaysBetweenPeriodicEqualise",
+   "control": "nudMaxDaysBetweenPeriodicEqualise",
+   "converter": "Numerical"
+  },
+  {
+   "index": 34,
+   "name": "AbsoluteVoltageLimit",
+   "control": "nudAbsoluteVoltageLimit",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 35,
+   "name": "BackOffTemperature",
+   "control": "nudBackOffTemperature",
+   "converter": "Numerical"
+  },
+  {
+   "index": 36,
+   "name": "BackOffRate",
+   "control": "nudBackOffRate",
+   "converter": "Numerical"
+  },
+  {
+   "index": 37,
+   "name": "StopSoCOverridePeriodicFloat",
+   "control": "nudStopSoCOverridePeriodicFloat",
+   "converter": "Numerical"
+  },
+  {
+   "index": 38,
+   "name": "LowBatteryToStartGenNoLoad",
+   "control": "nudLowBatteryToStartGenNoLoad",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 39,
+   "name": "LowBatteryToStartGenFullLoad",
+   "control": "nudLowBatteryToStartGenFullLoad",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 40,
+   "name": "PeukertsExponent",
+   "control": "nudPeukertsExponent",
+   "converter": "NumericalInUnitsWhichIsStoredInMiliUnits"
+  },
+  {
+   "index": 41,
+   "name": "SocKOne",
+   "control": "nudSocKOne",
+   "converter": "NumericalInUnitsWhichIsStoredInMiliUnits"
+  },
+  {
+   "index": 42,
+   "name": "SocKTwo",
+   "control": "nudSocKTwo",
+   "converter": "NumericalInUnitsWhichIsStoredInMiliUnits"
+  },
+  {
+   "index": 43,
+   "name": "SocKThree",
+   "control": "nudSocKThree",
+   "converter": "Numerical"
+  },
+  {
+   "index": 44,
+   "name": "MaxDaysBetweenPeriodicRecharge",
+   "control": "nudMaxDaysBetweenPeriodicRecharge",
+   "converter": "Numerical"
+  },
+  {
+   "index": 46,
+   "name": "HighBatteryTempProtectionLimit",
+   "control": "nudHighBatteryTempProtectionLimit",
+   "converter": "Numerical"
+  },
+  {
+   "index": 47,
+   "name": "AcCoupledHiBatteryInstantTripV",
+   "control": "nudAcCoupledHiBatteryInstantTripV",
+   "converter": "DCVoltage"
+  },
+  {
+   "index": 48,
+   "name": "SoftBattery",
+   "control": "cbSoftBattery",
+   "converter": "SoftBattery"
+  },
+  {
+   "index": 49,
+   "name": "AcCoupledHighBatteryTripDelay",
+   "control": "nudAcCoupledHighBatteryTripDelay",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 50,
+   "name": "AcCoupledHighBatteryTripScaleVolt",
+   "control": "nudAcCoupledHighBatteryTripScaleVolt",
+   "converter": "NumericalWhichIsStoredInDeciUnitsOffset100"
+  },
+  {
+   "index": 51,
+   "name": "AcCoupledHighBatteryTripScaleCurrent",
+   "control": "nudAcCoupledHighBatteryTripScaleCurrent",
+   "converter": "NumericalWhichIsStoredInDeciUnitsOffset100"
+  },
+  {
+   "index": 52,
+   "name": "BMSBatteryFloatVoltageScale",
+   "control": "nudBMSBatteryFloatVoltageScale",
+   "converter": "NumericalWhichIsStoredInDeciUnitsOffset100"
+  },
+  {
+   "index": 53,
+   "name": "BMSBatteryCurrentTargetScale",
+   "control": "nudBMSBatteryCurrentTargetScale",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 54,
+   "name": "InitialReturnSoC",
+   "control": "nudInitialReturnSoC",
+   "converter": "Numerical"
+  },
+  {
+   "index": 57,
+   "name": "BMSBatteryDischargeSurgeTime",
+   "control": "nudBMSBatteryDischargeSurgeTime",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 58,
+   "name": "BMSBatteryDischargeSurgePercent",
+   "control": "nudBMSBatteryDischargeSurgePercent",
+   "converter": "Numerical"
+  },
+  {
+   "index": 59,
+   "name": "BMSBatteryDischargeSurgeDuty",
+   "control": "nudBMSBatteryDischargeSurgeDuty",
+   "converter": "Numerical"
+  }
+ ],
+ "Scheduler": [
+  {
+   "index": 0,
+   "name": "SystemSchedule1Enable",
+   "control": "cbSystemSchedule1Enable",
+   "converter": "Logical"
+  },
+  {
+   "index": 1,
+   "name": "SystemSchedule1Day",
+   "control": "cbSystemSchedule1Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 2,
+   "name": "SystemSchedule1StartTime",
+   "control": "dtpSystemSchedule1StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 3,
+   "name": "SystemSchedule1StopTime",
+   "control": "dtpSystemSchedule1StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 4,
+   "name": "SystemSchedule1AcInputCapacity",
+   "control": "nudSystemSchedule1AcInputCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 5,
+   "name": "SystemSchedule1AcExportCapacity",
+   "control": "nudSystemSchedule1AcExportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 6,
+   "name": "SystemSchedule1InvDcSupportCapacity",
+   "control": "nudSystemSchedule1InvDcSupportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 7,
+   "name": "SystemSchedule1InvDcChargeCapacity",
+   "control": "nudSystemSchedule1InvDcChargeCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 8,
+   "name": "SystemSchedule1InvDcChargeCapacityViaSoC",
+   "control": "nudSystemSchedule1InvDcChargeCapacityViaSoC",
+   "converter": "InputPower"
+  },
+  {
+   "index": 9,
+   "name": "SystemSchedule1MinSoCToSupportLoad",
+   "control": "nudSystemSchedule1MinSoCToSupportLoad",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 10,
+   "name": "SystemSchedule1SoCStartCharging",
+   "control": "nudSystemSchedule1SoCStartCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 11,
+   "name": "SystemSchedule1SoCStopCharging",
+   "control": "nudSystemSchedule1SoCStopCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 12,
+   "name": "SystemSchedule1InverterLockout",
+   "control": "cbSystemSchedule1InverterLockout",
+   "converter": "Logical"
+  },
+  {
+   "index": 13,
+   "name": "SystemSchedule1ChargerLockout",
+   "control": "cbSystemSchedule1ChargerLockout",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 14,
+   "name": "SystemSchedule1ExportOnDemand",
+   "control": "nudSystemSchedule1ExportOnDemand",
+   "converter": "InputPower"
+  },
+  {
+   "index": 15,
+   "name": "SystemSchedule1DigitalInput",
+   "control": "cbSystemSchedule1DigitalInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 16,
+   "name": "SystemSchedule1DigitalInputEdge",
+   "control": "cbSystemSchedule1DigitalInputEdge",
+   "converter": "LevelSelection"
+  },
+  {
+   "index": 17,
+   "name": "SystemSchedule1DigitalOutput",
+   "control": "cbSystemSchedule1DigitalOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 18,
+   "name": "SystemSchedule1AcSourceDisconnect",
+   "control": "cbSystemSchedule1AcSourceDisconnect",
+   "converter": "Logical"
+  },
+  {
+   "index": 19,
+   "name": "SystemSchedule1StartDate",
+   "control": "dtpSystemSchedule1StartDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 20,
+   "name": "SystemSchedule1StopDate",
+   "control": "dtpSystemSchedule1StopDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 21,
+   "name": "SystemSchedule1ChargerLockoutViaSoC",
+   "control": "cbSystemSchedule1ChargerLockoutViaSoC",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 23,
+   "name": "SystemSchedule2Enable",
+   "control": "cbSystemSchedule2Enable",
+   "converter": "Logical"
+  },
+  {
+   "index": 24,
+   "name": "SystemSchedule2Day",
+   "control": "cbSystemSchedule2Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 25,
+   "name": "SystemSchedule2StartTime",
+   "control": "dtpSystemSchedule2StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 26,
+   "name": "SystemSchedule2StopTime",
+   "control": "dtpSystemSchedule2StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 27,
+   "name": "SystemSchedule2AcInputCapacity",
+   "control": "nudSystemSchedule2AcInputCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 28,
+   "name": "SystemSchedule2AcExportCapacity",
+   "control": "nudSystemSchedule2AcExportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 29,
+   "name": "SystemSchedule2InvDcSupportCapacity",
+   "control": "nudSystemSchedule2InvDcSupportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 30,
+   "name": "SystemSchedule2InvDcChargeCapacity",
+   "control": "nudSystemSchedule2InvDcChargeCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 31,
+   "name": "SystemSchedule2InvDcChargeCapacityViaSoC",
+   "control": "nudSystemSchedule2InvDcChargeCapacityViaSoC",
+   "converter": "InputPower"
+  },
+  {
+   "index": 32,
+   "name": "SystemSchedule2MinSoCToSupportLoad",
+   "control": "nudSystemSchedule2MinSoCToSupportLoad",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 33,
+   "name": "SystemSchedule2SoCStartCharging",
+   "control": "nudSystemSchedule2SoCStartCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 34,
+   "name": "SystemSchedule2SoCStopCharging",
+   "control": "nudSystemSchedule2SoCStopCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 35,
+   "name": "SystemSchedule2InverterLockout",
+   "control": "cbSystemSchedule2InverterLockout",
+   "converter": "Logical"
+  },
+  {
+   "index": 36,
+   "name": "SystemSchedule2ChargerLockout",
+   "control": "cbSystemSchedule2ChargerLockout",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 37,
+   "name": "SystemSchedule2ExportOnDemand",
+   "control": "nudSystemSchedule2ExportOnDemand",
+   "converter": "InputPower"
+  },
+  {
+   "index": 38,
+   "name": "SystemSchedule2DigitalInput",
+   "control": "cbSystemSchedule2DigitalInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 39,
+   "name": "SystemSchedule2DigitalInputEdge",
+   "control": "cbSystemSchedule2DigitalInputEdge",
+   "converter": "LevelSelection"
+  },
+  {
+   "index": 40,
+   "name": "SystemSchedule2DigitalOutput",
+   "control": "cbSystemSchedule2DigitalOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 41,
+   "name": "SystemSchedule2AcSourceDisconnect",
+   "control": "cbSystemSchedule2AcSourceDisconnect",
+   "converter": "Logical"
+  },
+  {
+   "index": 42,
+   "name": "SystemSchedule2StartDate",
+   "control": "dtpSystemSchedule2StartDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 43,
+   "name": "SystemSchedule2StopDate",
+   "control": "dtpSystemSchedule2StopDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 44,
+   "name": "SystemSchedule2ChargerLockoutViaSoC",
+   "control": "cbSystemSchedule2ChargerLockoutViaSoC",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 46,
+   "name": "SystemSchedule3Enable",
+   "control": "cbSystemSchedule3Enable",
+   "converter": "Logical"
+  },
+  {
+   "index": 47,
+   "name": "SystemSchedule3Day",
+   "control": "cbSystemSchedule3Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 48,
+   "name": "SystemSchedule3StartTime",
+   "control": "dtpSystemSchedule3StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 49,
+   "name": "SystemSchedule3StopTime",
+   "control": "dtpSystemSchedule3StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 50,
+   "name": "SystemSchedule3AcInputCapacity",
+   "control": "nudSystemSchedule3AcInputCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 51,
+   "name": "SystemSchedule3AcExportCapacity",
+   "control": "nudSystemSchedule3AcExportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 52,
+   "name": "SystemSchedule3InvDcSupportCapacity",
+   "control": "nudSystemSchedule3InvDcSupportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 53,
+   "name": "SystemSchedule3InvDcChargeCapacity",
+   "control": "nudSystemSchedule3InvDcChargeCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 54,
+   "name": "SystemSchedule3InvDcChargeCapacityViaSoC",
+   "control": "nudSystemSchedule3InvDcChargeCapacityViaSoC",
+   "converter": "InputPower"
+  },
+  {
+   "index": 55,
+   "name": "SystemSchedule3MinSoCToSupportLoad",
+   "control": "nudSystemSchedule3MinSoCToSupportLoad",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 56,
+   "name": "SystemSchedule3SoCStartCharging",
+   "control": "nudSystemSchedule3SoCStartCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 57,
+   "name": "SystemSchedule3SoCStopCharging",
+   "control": "nudSystemSchedule3SoCStopCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 58,
+   "name": "SystemSchedule3InverterLockout",
+   "control": "cbSystemSchedule3InverterLockout",
+   "converter": "Logical"
+  },
+  {
+   "index": 59,
+   "name": "SystemSchedule3ChargerLockout",
+   "control": "cbSystemSchedule3ChargerLockout",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 60,
+   "name": "SystemSchedule3ExportOnDemand",
+   "control": "nudSystemSchedule3ExportOnDemand",
+   "converter": "InputPower"
+  },
+  {
+   "index": 61,
+   "name": "SystemSchedule3DigitalInput",
+   "control": "cbSystemSchedule3DigitalInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 62,
+   "name": "SystemSchedule3DigitalInputEdge",
+   "control": "cbSystemSchedule3DigitalInputEdge",
+   "converter": "LevelSelection"
+  },
+  {
+   "index": 63,
+   "name": "SystemSchedule3DigitalOutput",
+   "control": "cbSystemSchedule3DigitalOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 64,
+   "name": "SystemSchedule3AcSourceDisconnect",
+   "control": "cbSystemSchedule3AcSourceDisconnect",
+   "converter": "Logical"
+  },
+  {
+   "index": 65,
+   "name": "SystemSchedule3StartDate",
+   "control": "dtpSystemSchedule3StartDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 66,
+   "name": "SystemSchedule3StopDate",
+   "control": "dtpSystemSchedule3StopDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 67,
+   "name": "SystemSchedule3ChargerLockoutViaSoC",
+   "control": "cbSystemSchedule3ChargerLockoutViaSoC",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 69,
+   "name": "SystemSchedule4Enable",
+   "control": "cbSystemSchedule4Enable",
+   "converter": "Logical"
+  },
+  {
+   "index": 70,
+   "name": "SystemSchedule4Day",
+   "control": "cbSystemSchedule4Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 71,
+   "name": "SystemSchedule4StartTime",
+   "control": "dtpSystemSchedule4StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 72,
+   "name": "SystemSchedule4StopTime",
+   "control": "dtpSystemSchedule4StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 73,
+   "name": "SystemSchedule4AcInputCapacity",
+   "control": "nudSystemSchedule4AcInputCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 74,
+   "name": "SystemSchedule4AcExportCapacity",
+   "control": "nudSystemSchedule4AcExportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 75,
+   "name": "SystemSchedule4InvDcSupportCapacity",
+   "control": "nudSystemSchedule4InvDcSupportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 76,
+   "name": "SystemSchedule4InvDcChargeCapacity",
+   "control": "nudSystemSchedule4InvDcChargeCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 77,
+   "name": "SystemSchedule4InvDcChargeCapacityViaSoC",
+   "control": "nudSystemSchedule4InvDcChargeCapacityViaSoC",
+   "converter": "InputPower"
+  },
+  {
+   "index": 78,
+   "name": "SystemSchedule4MinSoCToSupportLoad",
+   "control": "nudSystemSchedule4MinSoCToSupportLoad",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 79,
+   "name": "SystemSchedule4SoCStartCharging",
+   "control": "nudSystemSchedule4SoCStartCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 80,
+   "name": "SystemSchedule4SoCStopCharging",
+   "control": "nudSystemSchedule4SoCStopCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 81,
+   "name": "SystemSchedule4InverterLockout",
+   "control": "cbSystemSchedule4InverterLockout",
+   "converter": "Logical"
+  },
+  {
+   "index": 82,
+   "name": "SystemSchedule4ChargerLockout",
+   "control": "cbSystemSchedule4ChargerLockout",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 83,
+   "name": "SystemSchedule4ExportOnDemand",
+   "control": "nudSystemSchedule4ExportOnDemand",
+   "converter": "InputPower"
+  },
+  {
+   "index": 84,
+   "name": "SystemSchedule4DigitalInput",
+   "control": "cbSystemSchedule4DigitalInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 85,
+   "name": "SystemSchedule4DigitalInputEdge",
+   "control": "cbSystemSchedule4DigitalInputEdge",
+   "converter": "LevelSelection"
+  },
+  {
+   "index": 86,
+   "name": "SystemSchedule4DigitalOutput",
+   "control": "cbSystemSchedule4DigitalOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 87,
+   "name": "SystemSchedule4AcSourceDisconnect",
+   "control": "cbSystemSchedule4AcSourceDisconnect",
+   "converter": "Logical"
+  },
+  {
+   "index": 88,
+   "name": "SystemSchedule4StartDate",
+   "control": "dtpSystemSchedule4StartDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 89,
+   "name": "SystemSchedule4StopDate",
+   "control": "dtpSystemSchedule4StopDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 90,
+   "name": "SystemSchedule4ChargerLockoutViaSoC",
+   "control": "cbSystemSchedule4ChargerLockoutViaSoC",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 92,
+   "name": "SystemSchedule5Enable",
+   "control": "cbSystemSchedule5Enable",
+   "converter": "Logical"
+  },
+  {
+   "index": 93,
+   "name": "SystemSchedule5Day",
+   "control": "cbSystemSchedule5Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 94,
+   "name": "SystemSchedule5StartTime",
+   "control": "dtpSystemSchedule5StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 95,
+   "name": "SystemSchedule5StopTime",
+   "control": "dtpSystemSchedule5StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 96,
+   "name": "SystemSchedule5AcInputCapacity",
+   "control": "nudSystemSchedule5AcInputCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 97,
+   "name": "SystemSchedule5AcExportCapacity",
+   "control": "nudSystemSchedule5AcExportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 98,
+   "name": "SystemSchedule5InvDcSupportCapacity",
+   "control": "nudSystemSchedule5InvDcSupportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 99,
+   "name": "SystemSchedule5InvDcChargeCapacity",
+   "control": "nudSystemSchedule5InvDcChargeCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 100,
+   "name": "SystemSchedule5InvDcChargeCapacityViaSoC",
+   "control": "nudSystemSchedule5InvDcChargeCapacityViaSoC",
+   "converter": "InputPower"
+  },
+  {
+   "index": 101,
+   "name": "SystemSchedule5MinSoCToSupportLoad",
+   "control": "nudSystemSchedule5MinSoCToSupportLoad",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 102,
+   "name": "SystemSchedule5SoCStartCharging",
+   "control": "nudSystemSchedule5SoCStartCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 103,
+   "name": "SystemSchedule5SoCStopCharging",
+   "control": "nudSystemSchedule5SoCStopCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 104,
+   "name": "SystemSchedule5InverterLockout",
+   "control": "cbSystemSchedule5InverterLockout",
+   "converter": "Logical"
+  },
+  {
+   "index": 105,
+   "name": "SystemSchedule5ChargerLockout",
+   "control": "cbSystemSchedule5ChargerLockout",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 106,
+   "name": "SystemSchedule5ExportOnDemand",
+   "control": "nudSystemSchedule5ExportOnDemand",
+   "converter": "InputPower"
+  },
+  {
+   "index": 107,
+   "name": "SystemSchedule5DigitalInput",
+   "control": "cbSystemSchedule5DigitalInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 108,
+   "name": "SystemSchedule5DigitalInputEdge",
+   "control": "cbSystemSchedule5DigitalInputEdge",
+   "converter": "LevelSelection"
+  },
+  {
+   "index": 109,
+   "name": "SystemSchedule5DigitalOutput",
+   "control": "cbSystemSchedule5DigitalOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 110,
+   "name": "SystemSchedule5AcSourceDisconnect",
+   "control": "cbSystemSchedule5AcSourceDisconnect",
+   "converter": "Logical"
+  },
+  {
+   "index": 111,
+   "name": "SystemSchedule5StartDate",
+   "control": "dtpSystemSchedule5StartDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 112,
+   "name": "SystemSchedule5StopDate",
+   "control": "dtpSystemSchedule5StopDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 113,
+   "name": "SystemSchedule5ChargerLockoutViaSoC",
+   "control": "cbSystemSchedule5ChargerLockoutViaSoC",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 115,
+   "name": "SystemSchedule6Enable",
+   "control": "cbSystemSchedule6Enable",
+   "converter": "Logical"
+  },
+  {
+   "index": 116,
+   "name": "SystemSchedule6Day",
+   "control": "cbSystemSchedule6Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 117,
+   "name": "SystemSchedule6StartTime",
+   "control": "dtpSystemSchedule6StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 118,
+   "name": "SystemSchedule6StopTime",
+   "control": "dtpSystemSchedule6StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 119,
+   "name": "SystemSchedule6AcInputCapacity",
+   "control": "nudSystemSchedule6AcInputCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 120,
+   "name": "SystemSchedule6AcExportCapacity",
+   "control": "nudSystemSchedule6AcExportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 121,
+   "name": "SystemSchedule6InvDcSupportCapacity",
+   "control": "nudSystemSchedule6InvDcSupportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 122,
+   "name": "SystemSchedule6InvDcChargeCapacity",
+   "control": "nudSystemSchedule6InvDcChargeCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 123,
+   "name": "SystemSchedule6InvDcChargeCapacityViaSoC",
+   "control": "nudSystemSchedule6InvDcChargeCapacityViaSoC",
+   "converter": "InputPower"
+  },
+  {
+   "index": 124,
+   "name": "SystemSchedule6MinSoCToSupportLoad",
+   "control": "nudSystemSchedule6MinSoCToSupportLoad",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 125,
+   "name": "SystemSchedule6SoCStartCharging",
+   "control": "nudSystemSchedule6SoCStartCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 126,
+   "name": "SystemSchedule6SoCStopCharging",
+   "control": "nudSystemSchedule6SoCStopCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 127,
+   "name": "SystemSchedule6InverterLockout",
+   "control": "cbSystemSchedule6InverterLockout",
+   "converter": "Logical"
+  },
+  {
+   "index": 128,
+   "name": "SystemSchedule6ChargerLockout",
+   "control": "cbSystemSchedule6ChargerLockout",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 129,
+   "name": "SystemSchedule6ExportOnDemand",
+   "control": "nudSystemSchedule6ExportOnDemand",
+   "converter": "InputPower"
+  },
+  {
+   "index": 130,
+   "name": "SystemSchedule6DigitalInput",
+   "control": "cbSystemSchedule6DigitalInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 131,
+   "name": "SystemSchedule6DigitalInputEdge",
+   "control": "cbSystemSchedule6DigitalInputEdge",
+   "converter": "LevelSelection"
+  },
+  {
+   "index": 132,
+   "name": "SystemSchedule6DigitalOutput",
+   "control": "cbSystemSchedule6DigitalOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 133,
+   "name": "SystemSchedule6AcSourceDisconnect",
+   "control": "cbSystemSchedule6AcSourceDisconnect",
+   "converter": "Logical"
+  },
+  {
+   "index": 134,
+   "name": "SystemSchedule6StartDate",
+   "control": "dtpSystemSchedule6StartDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 135,
+   "name": "SystemSchedule6StopDate",
+   "control": "dtpSystemSchedule6StopDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 136,
+   "name": "SystemSchedule6ChargerLockoutViaSoC",
+   "control": "cbSystemSchedule6ChargerLockoutViaSoC",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 138,
+   "name": "SystemSchedule7Enable",
+   "control": "cbSystemSchedule7Enable",
+   "converter": "Logical"
+  },
+  {
+   "index": 139,
+   "name": "SystemSchedule7Day",
+   "control": "cbSystemSchedule7Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 140,
+   "name": "SystemSchedule7StartTime",
+   "control": "dtpSystemSchedule7StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 141,
+   "name": "SystemSchedule7StopTime",
+   "control": "dtpSystemSchedule7StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 142,
+   "name": "SystemSchedule7AcInputCapacity",
+   "control": "nudSystemSchedule7AcInputCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 143,
+   "name": "SystemSchedule7AcExportCapacity",
+   "control": "nudSystemSchedule7AcExportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 144,
+   "name": "SystemSchedule7InvDcSupportCapacity",
+   "control": "nudSystemSchedule7InvDcSupportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 145,
+   "name": "SystemSchedule7InvDcChargeCapacity",
+   "control": "nudSystemSchedule7InvDcChargeCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 146,
+   "name": "SystemSchedule7InvDcChargeCapacityViaSoC",
+   "control": "nudSystemSchedule7InvDcChargeCapacityViaSoC",
+   "converter": "InputPower"
+  },
+  {
+   "index": 147,
+   "name": "SystemSchedule7MinSoCToSupportLoad",
+   "control": "nudSystemSchedule7MinSoCToSupportLoad",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 148,
+   "name": "SystemSchedule7SoCStartCharging",
+   "control": "nudSystemSchedule7SoCStartCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 149,
+   "name": "SystemSchedule7SoCStopCharging",
+   "control": "nudSystemSchedule7SoCStopCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 150,
+   "name": "SystemSchedule7InverterLockout",
+   "control": "cbSystemSchedule7InverterLockout",
+   "converter": "Logical"
+  },
+  {
+   "index": 151,
+   "name": "SystemSchedule7ChargerLockout",
+   "control": "cbSystemSchedule7ChargerLockout",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 152,
+   "name": "SystemSchedule7ExportOnDemand",
+   "control": "nudSystemSchedule7ExportOnDemand",
+   "converter": "InputPower"
+  },
+  {
+   "index": 153,
+   "name": "SystemSchedule7DigitalInput",
+   "control": "cbSystemSchedule7DigitalInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 154,
+   "name": "SystemSchedule7DigitalInputEdge",
+   "control": "cbSystemSchedule7DigitalInputEdge",
+   "converter": "LevelSelection"
+  },
+  {
+   "index": 155,
+   "name": "SystemSchedule7DigitalOutput",
+   "control": "cbSystemSchedule7DigitalOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 156,
+   "name": "SystemSchedule7AcSourceDisconnect",
+   "control": "cbSystemSchedule7AcSourceDisconnect",
+   "converter": "Logical"
+  },
+  {
+   "index": 157,
+   "name": "SystemSchedule7StartDate",
+   "control": "dtpSystemSchedule7StartDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 158,
+   "name": "SystemSchedule7StopDate",
+   "control": "dtpSystemSchedule7StopDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 159,
+   "name": "SystemSchedule7ChargerLockoutViaSoC",
+   "control": "cbSystemSchedule7ChargerLockoutViaSoC",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 161,
+   "name": "SystemSchedule8Enable",
+   "control": "cbSystemSchedule8Enable",
+   "converter": "Logical"
+  },
+  {
+   "index": 162,
+   "name": "SystemSchedule8Day",
+   "control": "cbSystemSchedule8Day",
+   "converter": "Schedule"
+  },
+  {
+   "index": 163,
+   "name": "SystemSchedule8StartTime",
+   "control": "dtpSystemSchedule8StartTime",
+   "converter": "Time"
+  },
+  {
+   "index": 164,
+   "name": "SystemSchedule8StopTime",
+   "control": "dtpSystemSchedule8StopTime",
+   "converter": "Time"
+  },
+  {
+   "index": 165,
+   "name": "SystemSchedule8AcInputCapacity",
+   "control": "nudSystemSchedule8AcInputCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 166,
+   "name": "SystemSchedule8AcExportCapacity",
+   "control": "nudSystemSchedule8AcExportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 167,
+   "name": "SystemSchedule8InvDcSupportCapacity",
+   "control": "nudSystemSchedule8InvDcSupportCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 168,
+   "name": "SystemSchedule8InvDcChargeCapacity",
+   "control": "nudSystemSchedule8InvDcChargeCapacity",
+   "converter": "InputPower"
+  },
+  {
+   "index": 169,
+   "name": "SystemSchedule8InvDcChargeCapacityViaSoC",
+   "control": "nudSystemSchedule8InvDcChargeCapacityViaSoC",
+   "converter": "InputPower"
+  },
+  {
+   "index": 170,
+   "name": "SystemSchedule8MinSoCToSupportLoad",
+   "control": "nudSystemSchedule8MinSoCToSupportLoad",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 171,
+   "name": "SystemSchedule8SoCStartCharging",
+   "control": "nudSystemSchedule8SoCStartCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 172,
+   "name": "SystemSchedule8SoCStopCharging",
+   "control": "nudSystemSchedule8SoCStopCharging",
+   "converter": "NumericalWhichIsStoredInDeciUnits"
+  },
+  {
+   "index": 173,
+   "name": "SystemSchedule8InverterLockout",
+   "control": "cbSystemSchedule8InverterLockout",
+   "converter": "Logical"
+  },
+  {
+   "index": 174,
+   "name": "SystemSchedule8ChargerLockout",
+   "control": "cbSystemSchedule8ChargerLockout",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 175,
+   "name": "SystemSchedule8ExportOnDemand",
+   "control": "nudSystemSchedule8ExportOnDemand",
+   "converter": "InputPower"
+  },
+  {
+   "index": 176,
+   "name": "SystemSchedule8DigitalInput",
+   "control": "cbSystemSchedule8DigitalInput",
+   "converter": "DigitalInputSelection"
+  },
+  {
+   "index": 177,
+   "name": "SystemSchedule8DigitalInputEdge",
+   "control": "cbSystemSchedule8DigitalInputEdge",
+   "converter": "LevelSelection"
+  },
+  {
+   "index": 178,
+   "name": "SystemSchedule8DigitalOutput",
+   "control": "cbSystemSchedule8DigitalOutput",
+   "converter": "OutputSelection"
+  },
+  {
+   "index": 179,
+   "name": "SystemSchedule8AcSourceDisconnect",
+   "control": "cbSystemSchedule8AcSourceDisconnect",
+   "converter": "Logical"
+  },
+  {
+   "index": 180,
+   "name": "SystemSchedule8StartDate",
+   "control": "dtpSystemSchedule8StartDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 181,
+   "name": "SystemSchedule8StopDate",
+   "control": "dtpSystemSchedule8StopDate",
+   "converter": "DayMonth"
+  },
+  {
+   "index": 182,
+   "name": "SystemSchedule8ChargerLockoutViaSoC",
+   "control": "cbSystemSchedule8ChargerLockoutViaSoC",
+   "converter": "ChargerLockout"
+  },
+  {
+   "index": 184,
+   "name": "SystemSchedule1ChargeOverrideACSource",
+   "control": "cbSystemSchedule1ChargeOverrideACSource",
+   "converter": "ChargerOverrideACSourceLimit"
+  },
+  {
+   "index": 185,
+   "name": "SystemSchedule2ChargeOverrideACSource",
+   "control": "cbSystemSchedule2ChargeOverrideACSource",
+   "converter": "ChargerOverrideACSourceLimit"
+  },
+  {
+   "index": 186,
+   "name": "SystemSchedule3ChargeOverrideACSource",
+   "control": "cbSystemSchedule3ChargeOverrideACSource",
+   "converter": "ChargerOverrideACSourceLimit"
+  },
+  {
+   "index": 187,
+   "name": "SystemSchedule4ChargeOverrideACSource",
+   "control": "cbSystemSchedule4ChargeOverrideACSource",
+   "converter": "ChargerOverrideACSourceLimit"
+  },
+  {
+   "index": 188,
+   "name": "SystemSchedule5ChargeOverrideACSource",
+   "control": "cbSystemSchedule5ChargeOverrideACSource",
+   "converter": "ChargerOverrideACSourceLimit"
+  },
+  {
+   "index": 189,
+   "name": "SystemSchedule6ChargeOverrideACSource",
+   "control": "cbSystemSchedule6ChargeOverrideACSource",
+   "converter": "ChargerOverrideACSourceLimit"
+  },
+  {
+   "index": 190,
+   "name": "SystemSchedule7ChargeOverrideACSource",
+   "control": "cbSystemSchedule7ChargeOverrideACSource",
+   "converter": "ChargerOverrideACSourceLimit"
+  },
+  {
+   "index": 191,
+   "name": "SystemSchedule8ChargeOverrideACSource",
+   "control": "cbSystemSchedule8ChargeOverrideACSource",
+   "converter": "ChargerOverrideACSourceLimit"
+  }
+ ]
+}
