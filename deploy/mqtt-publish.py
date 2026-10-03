@@ -48,7 +48,7 @@ def device(kind, slug=None, label=None):
 
 
 def sensor(obj_id, name, state_topic, tpl, dev, unit=None, dclass=None,
-           sclass="measurement", icon=None, precision=None):
+           sclass="measurement", icon=None, precision=None, extra=None):
     cfg = {
         "name": name,
         "object_id": obj_id,            # fixes the entity_id rather than deriving it
@@ -65,6 +65,7 @@ def sensor(obj_id, name, state_topic, tpl, dev, unit=None, dclass=None,
     # Unlike the rest platform, MQTT honours this, so full precision is recorded
     # while the UI stays readable.
     if precision is not None: cfg["suggested_display_precision"] = precision
+    if extra: cfg.update(extra)
     return cfg
 
 
@@ -82,11 +83,53 @@ def discovery_configs():
         ("sp_pro_ac_frequency", "AC Frequency", "{{ value_json.ac.frequency_hz }}", "Hz", "frequency", "measurement", None, 2),
         ("sp_pro_charger_state", "Charger State", "{{ value_json.charger }}", None, None, None, "mdi:battery-charging", None),
         ("sp_pro_generator_state", "Generator State", "{{ value_json.generator.status }}", None, None, None, "mdi:engine", None),
-        ("sp_pro_clock_drift", "Clock Drift", "{{ value_json.inverter_clock_drift_seconds }}", "s", None, "measurement", "mdi:clock-alert-outline", 1),
         ("sp_pro_solar_total_power", "Solar Total Power", "{{ value_json.solar_total_watts }}", "W", "power", "measurement", None, 0),
     ]:
         out.append((f"{DISCOVERY}/sensor/{obj}/config",
                     sensor(obj, name, sp_topic, tpl, d, unit, dc, sc, icon, prec)))
+
+    # The inverter's clock is compared against the bridge host's clock, so the figure is only
+    # worth anything while that host clock is NTP-disciplined. When it is not, the bridge omits
+    # the field entirely and the second availability rule takes this entity offline — better a
+    # gap in the history than a number with nothing behind it. availability_mode must be "all":
+    # the default ("latest") would let whichever message arrived last decide.
+    drift_tpl = "{{ value_json.inverter_clock_drift_seconds }}"
+    out.append((f"{DISCOVERY}/sensor/sp_pro_clock_drift/config",
+                sensor("sp_pro_clock_drift", "Clock Offset vs Bridge", sp_topic, drift_tpl, d,
+                       "s", None, "measurement", "mdi:clock-alert-outline", 1,
+                       extra={
+                           "availability_mode": "all",
+                           "availability": [
+                               {"topic": f"{PREFIX}/status"},
+                               {"topic": sp_topic,
+                                # "is defined" covers the field being dropped; "is not none"
+                                # covers it being present and null. A genuine 0.0 s offset is
+                                # falsy, so neither test may be a plain truthiness check.
+                                "value_template":
+                                    "{{ 'online' if value_json.inverter_clock_drift_seconds is defined"
+                                    " and value_json.inverter_clock_drift_seconds is not none"
+                                    " else 'offline' }}"},
+                           ],
+                       })))
+
+    # Makes the reference itself observable, so "is the drift real?" is answerable from Home
+    # Assistant rather than by trusting the bridge. Binary and near-static, so it costs no
+    # meaningful traffic -- unlike the host's actual NTP offset, which jitters by tens of
+    # milliseconds every probe. That stays in the JSON API for when it is actually wanted.
+    out.append((f"{DISCOVERY}/binary_sensor/sp_pro_bridge_clock_synced/config", {
+        "name": "Bridge Clock Synchronised",
+        "object_id": "sp_pro_bridge_clock_synced",
+        "unique_id": "solarbridge_sp_pro_bridge_clock_synced",
+        "state_topic": sp_topic,
+        # host_clock must be defaulted before it is indexed: attribute access on an undefined
+        # raises, and a retained payload from an older bridge has no host_clock at all.
+        "value_template": "{{ 'ON' if (value_json.host_clock | default({}, true)).synchronized"
+                          " | default(false, true) else 'OFF' }}",
+        "device_class": "connectivity",
+        "entity_category": "diagnostic",
+        "device": d,
+        "availability": [{"topic": f"{PREFIX}/status"}],
+    }))
 
     for slug, label in [("right", "Fronius Right"), ("left", "Fronius Left")]:
         t = f"{PREFIX}/fronius/{slug}/state"
@@ -207,6 +250,13 @@ def main():
             sp.pop("inverter_clock", None)
             sp.pop("inverter_clock_read_at", None)
             sp.pop("taken_at", None)
+            # Same reasoning for the clock reference: offset, root distance and the probe
+            # timestamp move on every read, so carrying them would mean no payload ever
+            # matches the last and change detection would never skip a publish. Only the
+            # fields that actually change state are kept; the JSON API still has them all.
+            if isinstance(sp.get("host_clock"), dict):
+                sp["host_clock"] = {k: v for k, v in sp["host_clock"].items()
+                                    if k in ("synchronized", "source", "stratum")}
 
             sent = publish_if_changed(client, f"{PREFIX}/sppro/state",
                                       json.dumps(quantise(sp), sort_keys=True), force)

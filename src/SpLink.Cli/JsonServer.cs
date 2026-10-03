@@ -170,7 +170,21 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
         // Read on a slower cadence than the rest: it is a separate serial round trip and only
         // matters for spotting drift. Both fields describe the same measurement instant.
         inverter_clock_read_at = s.ClockReadAt,
+        // Omitted entirely when the host clock it is measured against is not disciplined.
         inverter_clock_drift_seconds = s.ClockDriftSeconds,
+        // The reference the drift above is measured against, published so it can be judged
+        // rather than assumed. offset_seconds is this host's own error against its NTP peer.
+        host_clock = s.HostClock is null ? null : new
+        {
+            synchronized = s.HostClock.Synchronized,
+            source = s.HostClock.Source,
+            server = s.HostClock.Server,
+            stratum = s.HostClock.Stratum,
+            offset_seconds = s.HostClock.OffsetSeconds,
+            root_distance_seconds = s.HostClock.RootDistanceSeconds,
+            poll_interval_seconds = s.HostClock.PollIntervalSeconds,
+            checked_at = s.HostClock.CheckedAt,
+        },
         battery = s.Live is null ? null : new
         {
             soc_percent = Round(s.Live.BatterySoCPercent, 3),

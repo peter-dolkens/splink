@@ -4,7 +4,8 @@ namespace SpLink.Protocol;
 
 public sealed record SpProSnapshot(
     DateTimeOffset TakenAt, SpProLiveReading? Live, DateTime? InverterClock, string? Error,
-    SpProUnitInfo? Unit = null, double? ClockDriftSeconds = null, DateTimeOffset? ClockReadAt = null)
+    SpProUnitInfo? Unit = null, double? ClockDriftSeconds = null, DateTimeOffset? ClockReadAt = null,
+    HostClockStatus? HostClock = null)
 {
     public bool Healthy => Error is null && Live is not null;
 }
@@ -28,6 +29,7 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
     private DateTime? _clock;
     private DateTimeOffset _clockReadAt = DateTimeOffset.MinValue;
     private double? _clockDriftSeconds;
+    private readonly HostClockProbe _hostClock = new();
 
     /// <summary>How long a reading may be reused, so a burst of requests does not re-read the inverter.</summary>
     public TimeSpan CacheFor { get; set; } = TimeSpan.FromSeconds(2);
@@ -56,6 +58,9 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
             _lastUsed = DateTimeOffset.Now;
             if (_cached is { } c && DateTimeOffset.Now - c.TakenAt < CacheFor) return c;
 
+            // Cheap and cached; it never throws, so it is safe to have in hand for the error path too.
+            var host = _hostClock.Read();
+
             try
             {
                 var client = await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
@@ -68,11 +73,15 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
                     _clockReadAt = DateTimeOffset.Now;
                     // Drift is only meaningful at the instant it was measured, so capture it here
                     // rather than letting a consumer compare a stale timestamp against "now".
-                    _clockDriftSeconds = Math.Round((_clock.Value - DateTime.Now).TotalSeconds, 1);
+                    // DateTime.Now is this host's clock, which is why the measurement is only
+                    // reported while that clock is known to be disciplined.
+                    _clockDriftSeconds = Drift(host, Math.Round((_clock.Value - DateTime.Now).TotalSeconds, 1));
                 }
 
+                // Re-check at probe cadence rather than clock-read cadence, so losing NTP takes the
+                // figure away within the minute instead of up to ClockInterval later.
                 return _cached = new SpProSnapshot(DateTimeOffset.Now, live, _clock, null, unit,
-                                                   _clockDriftSeconds, _clockReadAt);
+                                                   Drift(host, _clockDriftSeconds), _clockReadAt, host);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -84,7 +93,8 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
                 Log?.Invoke($"sp pro read failed: {ex.Message}");
                 await CloseAsync().ConfigureAwait(false);
                 return _cached = new SpProSnapshot(DateTimeOffset.Now, _cached?.Live, _cached?.InverterClock,
-                                                   ex.Message, _cached?.Unit, _cached?.ClockDriftSeconds, _cached?.ClockReadAt);
+                                                   ex.Message, _cached?.Unit, Drift(host, _cached?.ClockDriftSeconds),
+                                                   _cached?.ClockReadAt, host);
             }
         }
         finally
@@ -92,6 +102,16 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
             _gate.Release();
         }
     }
+
+    /// <summary>
+    /// Withholds a drift figure whose reference we know to be unsound. A drift is the difference
+    /// between the inverter's clock and this host's, so an undisciplined host clock makes the
+    /// number meaningless — and a meaningless number that still looks like a measurement is worse
+    /// than no number at all. An <em>unverifiable</em> host clock (anywhere we cannot interrogate
+    /// the OS) is not the same as a bad one, so the figure stands.
+    /// </summary>
+    internal static double? Drift(HostClockStatus host, double? measured) =>
+        host.Synchronized == false ? null : measured;
 
     /// <summary>Closes the link once it has been idle, freeing the port. Run for the lifetime of the host.</summary>
     public async Task RunIdleReaperAsync(CancellationToken cancellationToken)
