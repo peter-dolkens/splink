@@ -118,3 +118,43 @@ public class SpProConfigTests
         Assert.Equal(before, fake.RequestLog.Count(r => SpProFrame.Op(r) == FrameOp.Write));
     }
 }
+
+public class ChangeSignConverterTests
+{
+    [Theory]
+    // Real values read off the build-site SP PRO. Each pairs with a non-Connect twin that uses
+    // a different converter and must agree: ACFreqMin is -4, ACVMin is -10.
+    [InlineData(40, "-4")]
+    [InlineData(100, "-10")]
+    [InlineData(0, "0")]
+    [InlineData(5, "-0.5")]
+    public void Deci_change_sign_negates_the_unsigned_word(ushort raw, string expected) =>
+        Assert.Equal(expected, SpProConfigReader.Decode("NumericalWhichIsStoredInDeciUnitsAndChangeSign", raw));
+
+    [Theory]
+    [InlineData(4, "-4")]
+    [InlineData(10, "-10")]
+    [InlineData(0, "0")]
+    public void Change_sign_negates_the_unsigned_word(ushort raw, string expected) =>
+        Assert.Equal(expected, SpProConfigReader.Decode("NumericalAndChangeSign", raw));
+
+    [Theory]
+    [InlineData("NumericalWhichIsStoredInDeciUnitsAndChangeSign", (ushort)40000, "-4000")]
+    [InlineData("NumericalAndChangeSign", (ushort)40000, "-40000")]
+    public void A_word_above_short_max_is_still_a_magnitude_not_a_signed_value(
+        string converter, ushort raw, string expected) =>
+        // SP LINK computes -1 * value on the unsigned word, so a high word stays negative.
+        // Reinterpreting it as a signed short would flip it positive — the bug this guards.
+        Assert.Equal(expected, SpProConfigReader.Decode(converter, raw));
+
+    [Fact]
+    public void The_connect_window_matches_its_unscaled_twin()
+    {
+        // AppType 14/123 and 12/121 describe the same limits through different converters.
+        // Agreement between them is what proves the decode, so assert it directly.
+        Assert.Equal(SpProConfigReader.Decode("NumericalAndChangeSign", 4),
+                     SpProConfigReader.Decode("NumericalWhichIsStoredInDeciUnitsAndChangeSign", 40));
+        Assert.Equal(SpProConfigReader.Decode("NumericalAndChangeSign", 10),
+                     SpProConfigReader.Decode("NumericalWhichIsStoredInDeciUnitsAndChangeSign", 100));
+    }
+}

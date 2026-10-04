@@ -86,8 +86,12 @@ public static class SpProConfigReader
             "NumericalWhichIsStoredInCentiUnits" => Scaled(raw, 100),
             "NumericalInUnitsWhichIsStoredInMiliUnits" => Scaled(raw, 1000),
             "NumericalWhichIsStoredInQuinquadeciUnits" => Scaled(raw, 15),
-            "NumericalWhichIsStoredInDeciUnitsAndChangeSign" => Scaled((ushort)(-(short)raw), 10),
-            "NumericalAndChangeSign" => (-(short)raw).ToString(CultureInfo.InvariantCulture),
+            // SP LINK computes these as "-1 * value" on the *unsigned* word (mConfig.cs:9846, 9858),
+            // so the register holds a magnitude that is negated — it is not a two's-complement
+            // signed short. Reinterpreting it as one wrapped the result back through ushort and
+            // turned ACFreqMinConnect's 40 into 6549.6 instead of -4.
+            "NumericalWhichIsStoredInDeciUnitsAndChangeSign" => Scaled(-(int)raw, 10),
+            "NumericalAndChangeSign" => (-(int)raw).ToString(CultureInfo.InvariantCulture),
             "NumericalWithOffSetOf10000" => (raw - 10000).ToString(CultureInfo.InvariantCulture),
             "NumericalWhichIsStoredInDeciUnitsOffset100" => ((decimal)raw / 10 - 100).ToString(CultureInfo.InvariantCulture),
             "NumericalWhichIsDisplayedInHoursButStoredInMinutes" => Scaled(raw, 60),
@@ -115,6 +119,6 @@ public static class SpProConfigReader
 
     private static string Minutes(ushort raw) => $"{raw / 60:D2}:{raw % 60:D2}";
 
-    private static string Scaled(ushort raw, int divisor) =>
+    private static string Scaled(int raw, int divisor) =>
         ((decimal)raw / divisor).ToString(CultureInfo.InvariantCulture);
 }
