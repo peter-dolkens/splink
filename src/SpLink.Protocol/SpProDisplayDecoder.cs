@@ -128,10 +128,52 @@ public static class SpProDisplayDecoder
             "ConvertChargerStatusValueToString" => (SpProLiveData.ChargerStateName(Lo()), null),
             "ConvertChargerLockoutStatusValueToString" => (SpProLiveData.ChargerLockoutName(Lo()), null),
 
+            // --- identity and configuration -------------------------------------------------
+            "ConvertKacoModelNumberToString" => (SpProDisplayBlocks.KacoModelName(Lo()), null),
+            "Convert32bitUnsignedValueInkWToString" => (Round(SpProScaling.Unsigned32(Lo(), Hi()) / 1000.0, 2), "kW"),
+            "ConvertFactorySettingBooleanValueToString" => (Lo() != 0, null),
+            "ConvertInverterModelValueToModelNumberString" when Lo() < (uint)SpProUnitInfo.ModelNumbers.Length
+                => (SpProUnitInfo.ModelNumbers[Lo()] is { Length: > 0 } m ? m : null, null),
+
+            // --- BCD date and time ------------------------------------------------------------
+            // Stored two decimal digits to a byte, as the clock registers are.
+            "ConvertDateThatWasStoredInBCDToString" when r.Length >= 2
+                => (BcdDate(r), null),
+            "ConvertTimeThatWasStoredInBCDToString" or "ConvertTimethatfloatwasachievedToString"
+                => (BcdTime(Lo()), null),
+
+            // --- small enumerations -----------------------------------------------------------
+            "ConvertDigInput_OutputStatusValueToString" => (Lo() switch
+            {
+                0 => "Inactive",
+                1 => "Active",
+                _ => $"Unknown ({Lo()})",
+            }, null),
+            "ConvertDaysToEqualiseValueToString" => (Lo() == ushort.MaxValue ? "Disabled" : (object)Lo(), "d"),
+
             // Not transcribed. The raw words still travel with the field.
             _ => (null, null),
         };
     }
 
     private static object Round(double value, int digits) => Math.Round(value, digits);
+
+    private static int Bcd(int b) => ((b >> 4) & 0xF) * 10 + (b & 0xF);
+
+    /// <summary>Two words of packed BCD: day, month, year. Zero means "never set".</summary>
+    private static string? BcdDate(ushort[] r)
+    {
+        if (r.All(x => x == 0)) return null;
+        int day = Bcd(r[0] & 0xFF), month = Bcd(r[0] >> 8), year = Bcd(r[1] & 0xFF);
+        if (day is < 1 or > 31 || month is < 1 or > 12) return null;
+        return $"{2000 + year:D4}-{month:D2}-{day:D2}";
+    }
+
+    /// <summary>One word of packed BCD: hour, minute.</summary>
+    private static string? BcdTime(ushort raw)
+    {
+        if (raw == 0 || raw == ushort.MaxValue) return null;
+        int hour = Bcd(raw >> 8), minute = Bcd(raw & 0xFF);
+        return hour < 24 && minute < 60 ? $"{hour:D2}:{minute:D2}" : null;
+    }
 }
