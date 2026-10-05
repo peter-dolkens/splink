@@ -19,6 +19,8 @@ internal static class SpLinkCli
           splink config <connection> [--json] [--all]
                                                   Read the inverter's configuration (read-only; no write support)
           splink logs <connection>                What logged data the inverter holds (sizes, counts, versions)
+          splink read <connection> <addr> <words>
+                                          Dump a raw register block (decimal or 0x hex). Read-only.
           splink download <connection> --log <name> [--limit <n>] [--raw]
                                                   Download logged records (newest first). --log: alerts|events|daily|detailed
           splink serve <connection> [--http-port <n>] [--interval <s>]
@@ -86,6 +88,8 @@ internal static class SpLinkCli
                     return await ConfigAsync(options, cts.Token);
                 case "logs":
                     return await LogsAsync(options, cts.Token);
+                case "read":
+                    return await ReadAsync(options, cts.Token);
                 case "download":
                     return await DownloadAsync(options, cts.Token);
                 case "clock":
@@ -362,6 +366,45 @@ internal static class SpLinkCli
         if (verbose)
             Console.WriteLine($"  (legacy AC-load interpretation: {r.AcLoadKilowattsLegacy:F3} kW)");
     }
+
+    /// <summary>
+    /// Dumps an arbitrary register block. SP LINK reads around fifty named blocks and this tool
+    /// decodes a handful, so this exists to see what a block actually holds before deciding
+    /// whether it is worth decoding. Read-only: there is deliberately no matching write.
+    /// </summary>
+    private static async Task<int> ReadAsync(Options options, CancellationToken ct)
+    {
+        if (options.Positional.Count < 3)
+            throw new UsageException("'read' needs an address and a word count");
+        var address = ParseAddress(options.Positional[1]);
+        if (!int.TryParse(options.Positional[2], out var count) || count is < 1 or > 256)
+            throw new UsageException("word count must be 1..256");
+
+        await using var client = await ConnectAsync(options, ct);
+        try
+        {
+            var words = await client.ReadWordsAsync(address, count, ct);
+            Console.WriteLine($"{address} (0x{address:X}) x {words.Length} words");
+            for (var i = 0; i < words.Length; i += 8)
+            {
+                var row = words.Skip(i).Take(8).ToArray();
+                var hex = string.Join(" ", row.Select(x => x.ToString("X4")));
+                var dec = string.Join(" ", row.Select(x => x.ToString().PadLeft(6)));
+                Console.WriteLine($"  [{i,3}] {hex,-39} {dec}");
+            }
+            return 0;
+        }
+        finally
+        {
+            await client.DisconnectAsync(ct);
+        }
+    }
+
+    private static uint ParseAddress(string text) =>
+        text.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+            ? Convert.ToUInt32(text[2..], 16)
+            : uint.TryParse(text, out var n) ? n
+            : throw new UsageException($"cannot parse address '{text}'");
 
     private static async Task<int> ClockGetAsync(Options options, CancellationToken ct)
     {
