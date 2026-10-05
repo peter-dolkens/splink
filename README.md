@@ -10,10 +10,13 @@ Built because SP LINK, the vendor's configuration and monitoring tool, is Window
 
 | | |
 | --- | --- |
-| **Live data** | battery SoC, voltage, current and power; AC load, voltage and frequency; charger and generator state |
+| **Live data** | battery SoC, voltage, current and power; AC load, voltage and frequency; charger, generator and AC source state; inverter mode and power |
+| **AC-coupled solar** | the SP PRO's own measurement of managed AC-coupled inverters — total and per inverter, plus the commanded output limit and the detected inverter models |
+| **Accumulators** | today's energy in and out, run hours, and the lifetime, 7-, 30- and 365-day histories |
+| **Every display block** | 15 register blocks, 392 fields, 338 decoded to engineering units — everything SP LINK itself puts on screen |
 | **Configuration** | all 563 settings, decoded with the vendor's own names and labels |
 | **Logged data** | the four on-device logs — alert events, operational events, daily summary and detailed — decoded to engineering units |
-| **Clock** | read the inverter's real-time clock and report drift |
+| **Clock** | read the inverter's real-time clock, and report drift against an NTP-disciplined host — withheld when that host clock is not disciplined |
 | **Fronius** | aggregate any number of Fronius inverters over the Solar API, including per-MPPT DC strings |
 | **Serving** | a read-only JSON API and Prometheus `/metrics`, or MQTT discovery for Home Assistant |
 
@@ -28,6 +31,12 @@ disconnect notification — which are volatile protocol state rather than device
 implemented and not planned**: the risk of bricking an inverter or corrupting battery
 charge parameters is not worth it.
 
+`serve` exposes `/raw`, which reads an arbitrary register block, only when given
+`--allow-raw`, and then only to requests arriving directly on loopback. Every other endpoint
+answers from a short cache, so no volume of external traffic becomes more than one inverter
+read per cache interval; `/raw` drives a round trip per request, which is not something to
+leave reachable from a tunnel.
+
 ## Quick start
 
 ```sh
@@ -37,6 +46,7 @@ splink now     --port auto                     # live data
 splink config  --port auto --json              # all 563 settings
 splink logs    --port auto                     # what logged data exists
 splink download --port auto --log daily        # logged records as CSV
+splink read    --port auto 41048 85            # dump a raw register block
 splink serve   --port auto --fronius a=10.0.0.1,b=10.0.0.2
 ```
 
@@ -71,22 +81,35 @@ These are facts about the wire format, not vendor source.
 ```
 src/SpLink.Protocol    framing, CRC, login, codecs, transports, Fronius client, simulator
 src/SpLink.Cli         the splink command
-tests/                 82 tests, including a simulated inverter and a fake Fronius
+tests/                 132 tests, including a simulated inverter and a fake Fronius
 tools/                 scripts that mine register maps and label tables (see below)
 deploy/                provisioning for a Raspberry Pi bridge
 ```
 
-The register map, the 30 configuration enum tables and the 733 event labels are **not
-hand-transcribed**. `tools/extract_*.py` mine them and generate the `*.g.cs` files, so they
-can be regenerated against a different firmware revision rather than maintained by hand.
-The tools expect a local decompilation, which is deliberately not distributed here.
+The register map, the 30 configuration enum tables, the 733 event labels and the display
+block map are **not hand-transcribed**. `tools/extract_*.py` and `tools/gen_*.py` mine them
+and generate the `*.g.cs` files, so they can be regenerated against a different firmware
+revision rather than maintained by hand. The tools expect a local decompilation, which is
+deliberately not distributed here.
+
+Deriving the display blocks mechanically is harder than a scrape, because a control is
+assigned in several branches of a memory-map version test, and the AC-coupled controls are
+reused for a network power meter when one is fitted — chosen at runtime. The generator
+resolves both by preferring the branch whose converter agrees with what the control's name
+claims, then by the candidate that continues its numbered family's stride. A field whose
+converter has not been transcribed is still emitted, carrying its raw words and the
+converter's name, so an undecoded register says so rather than being dropped or guessed at.
 
 ## Status
 
-Validated against an SP PRO SPMC482 and two Fronius inverters: connection and auto-baud,
-the MD5 login, live data, the clock, all 563 configuration settings, and all four logged-data
-types. The Fronius scaling cross-checks against the SP PRO's independent measurement of the
-same power to within 1%.
+Validated against an SP PRO SPMC482 (hardware revision 25) and two Fronius Primo GEN24 10.0:
+connection and auto-baud, the MD5 login, live data, the clock, all 563 configuration
+settings, all four logged-data types, and a 945-word sweep of every block SP LINK displays.
+
+Scalings are cross-checked rather than assumed. The SP PRO's own AC-coupled measurement
+agrees with what the Fronius report over their own API to within 1%; the model codes it
+stores decode to the inverters actually installed; and its stored AC-coupled capacity
+matches their combined nameplate.
 
 ## Legal
 
