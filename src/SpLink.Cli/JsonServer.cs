@@ -112,6 +112,22 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
                     }
 
                     var query = context.Request.QueryString;
+                    if (TryParseAddress(query["address"], out var probe) &&
+                        int.TryParse(query["words"], out var probeWords) &&
+                        OverlapsAccessCode(probe, probeWords))
+                    {
+                        // 49349..49380 is the unit's 32-character access code, one ASCII
+                        // character per word. SP LINK skips it when reading configuration -- it
+                        // is a credential, not a setting -- and it must not become readable over
+                        // HTTP just because this endpoint takes an arbitrary address.
+                        status = 403;
+                        body = JsonSerializer.Serialize(new
+                        {
+                            error = "that range holds the unit access code and is not served",
+                        }, Json);
+                        break;
+                    }
+
                     if (!TryParseAddress(query["address"], out var address) ||
                         !int.TryParse(query["words"], out var words) || words is < 1 or > 256)
                     {
@@ -219,6 +235,16 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
 
         var remote = request.RemoteEndPoint?.Address;
         return remote is not null && System.Net.IPAddress.IsLoopback(remote);
+    }
+
+    /// <summary>The unit access code occupies 32 words that no endpoint may return.</summary>
+    private const uint AccessCodeFirst = 49349, AccessCodeLast = 49380;
+
+    private static bool OverlapsAccessCode(uint address, int words)
+    {
+        if (words < 1) return false;
+        var last = address + (uint)(words - 1);
+        return address <= AccessCodeLast && last >= AccessCodeFirst;
     }
 
     private static bool TryParseAddress(string? text, out uint address)
