@@ -84,6 +84,39 @@ def discovery_configs():
         ("sp_pro_charger_state", "Charger State", "{{ value_json.charger }}", None, None, None, "mdi:battery-charging", None),
         ("sp_pro_generator_state", "Generator State", "{{ value_json.generator.status }}", None, None, None, "mdi:engine", None),
         ("sp_pro_solar_total_power", "Solar Total Power", "{{ value_json.solar_total_watts }}", "W", "power", "measurement", None, 0),
+        # The SP PRO's own measurement of AC-coupled solar. It duplicates what the Fronius
+        # report over their own network on purpose: two independent paths to the same number
+        # make a disagreement visible instead of silent.
+        ("sp_pro_ac_coupled_power", "AC Coupled Solar Power",
+         "{{ value_json.ac_coupled.kilowatts * 1000 }}", "W", "power", "measurement", None, 0),
+        ("sp_pro_ac_coupled_power_1", "AC Coupled Solar Power 1",
+         "{{ value_json.ac_coupled.per_inverter[0] * 1000 }}", "W", "power", "measurement", None, 0),
+        ("sp_pro_ac_coupled_power_2", "AC Coupled Solar Power 2",
+         "{{ value_json.ac_coupled.per_inverter[1] * 1000 }}", "W", "power", "measurement", None, 0),
+        ("sp_pro_inverter_power", "Inverter AC Power",
+         "{{ value_json.inverter.kilowatts * 1000 }}", "W", "power", "measurement", None, 0),
+        ("sp_pro_inverter_mode", "Inverter Mode", "{{ value_json.inverter.mode }}", None, None, None, "mdi:sine-wave", None),
+        ("sp_pro_ac_source_status", "AC Source Status", "{{ value_json.inverter.ac_source_status }}", None, None, None, "mdi:transmission-tower", None),
+        ("sp_pro_battery_load_5min", "Battery Load 5 min",
+         "{{ value_json.battery_trend.load_5min_kilowatts * 1000 }}", "W", "power", "measurement", None, 0),
+        ("sp_pro_battery_load_15min", "Battery Load 15 min",
+         "{{ value_json.battery_trend.load_15min_kilowatts * 1000 }}", "W", "power", "measurement", None, 0),
+        # Daily accumulators. They reset at midnight, so total_increasing is the right class:
+        # Home Assistant then treats the reset as a new cycle rather than a negative spike.
+        ("sp_pro_today_ac_coupled_energy", "Solar Energy Today",
+         "{{ value_json.today.ac_coupled_kwh }}", "kWh", "energy", "total_increasing", None, 3),
+        ("sp_pro_today_ac_load_energy", "Load Energy Today",
+         "{{ value_json.today.ac_load_kwh }}", "kWh", "energy", "total_increasing", None, 3),
+        ("sp_pro_today_battery_in_energy", "Battery In Today",
+         "{{ value_json.today.battery_in_kwh }}", "kWh", "energy", "total_increasing", None, 3),
+        ("sp_pro_today_battery_out_energy", "Battery Out Today",
+         "{{ value_json.today.battery_out_kwh }}", "kWh", "energy", "total_increasing", None, 3),
+        ("sp_pro_today_ac_coupled_peak", "Solar Peak Today",
+         "{{ value_json.today.ac_coupled_peak_kilowatts * 1000 }}", "W", "power", "measurement", None, 0),
+        ("sp_pro_today_inverter_run_hours", "Inverter Run Hours Today",
+         "{{ value_json.today.inverter_run_hours }}", "h", "duration", "total_increasing", None, 2),
+        ("sp_pro_today_float_hours", "Float Hours Today",
+         "{{ value_json.today.float_hours }}", "h", "duration", "total_increasing", None, 2),
     ]:
         out.append((f"{DISCOVERY}/sensor/{obj}/config",
                     sensor(obj, name, sp_topic, tpl, d, unit, dc, sc, icon, prec)))
@@ -254,6 +287,9 @@ def main():
             # timestamp move on every read, so carrying them would mean no payload ever
             # matches the last and change detection would never skip a publish. Only the
             # fields that actually change state are kept; the JSON API still has them all.
+            # today_read_at advances on its own cadence and would defeat change detection for
+            # the whole SP PRO payload; the values it timestamps are what matter.
+            sp.pop("today_read_at", None)
             if isinstance(sp.get("host_clock"), dict):
                 sp["host_clock"] = {k: v for k, v in sp["host_clock"].items()
                                     if k in ("synchronized", "source", "stratum")}

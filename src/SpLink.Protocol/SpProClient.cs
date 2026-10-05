@@ -23,6 +23,7 @@ public sealed class SpProClient(ISpProTransport transport, bool allowWrites = fa
 {
     private int _linkPort = -1;
     private SpProScaleFactors? _scaleFactors;
+    private int? _memoryMapVersion;
     private SpProUnitInfo? _unitInfo;
     private SpProLogReader? _logs;
 
@@ -122,6 +123,28 @@ public sealed class SpProClient(ISpProTransport transport, bool allowWrites = fa
         var scale = await ReadScaleFactorsAsync(cancellationToken).ConfigureAwait(false);
         var words = await ReadWordsAsync(SpProRegisters.NowBlock, SpProRegisters.NowBlockWordCount, cancellationToken).ConfigureAwait(false);
         return SpProLiveData.Decode(words, scale);
+    }
+
+    /// <summary>
+    /// Reads the memory-map version, cached for the session. Several blocks moved fields between
+    /// versions, so decoders are told the version rather than assuming the newest layout.
+    /// </summary>
+    public async Task<int> ReadMemoryMapVersionAsync(CancellationToken cancellationToken = default)
+    {
+        if (_memoryMapVersion is { } cached) return cached;
+        var words = await ReadWordsAsync(SpProRegisters.ConfigStatus, SpProRegisters.ConfigStatusWordCount,
+                                         cancellationToken).ConfigureAwait(false);
+        return (_memoryMapVersion = words[SpProRegisters.MemoryMapVersionOffset]).Value;
+    }
+
+    /// <summary>Reads and decodes the "Today" accumulators: energy in and out, run hours, AC-coupled totals.</summary>
+    public async Task<SpProTodayReading> ReadTodayAsync(CancellationToken cancellationToken = default)
+    {
+        var scale = await ReadScaleFactorsAsync(cancellationToken).ConfigureAwait(false);
+        var version = await ReadMemoryMapVersionAsync(cancellationToken).ConfigureAwait(false);
+        var words = await ReadWordsAsync(SpProRegisters.TodayBlock, SpProRegisters.TodayBlockWordCount,
+                                         cancellationToken).ConfigureAwait(false);
+        return SpProTodayData.Decode(words, scale, version);
     }
 
     /// <summary>Access to the logged performance data (read-only).</summary>

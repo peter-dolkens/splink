@@ -212,3 +212,60 @@ public class UnitInfoDescriptionTests
         Assert.Equal(24, unit.BatteryCellCount);
     }
 }
+
+public class ScalingTests
+{
+    // The build-site SP PRO's own scale factors: acV, acA, dcV, dcA, temp, internal.
+    private static readonly SpProScaleFactors Scale = SpProScaleFactors.FromWords([5300, 2934, 1050, 16000, 530, 180]);
+
+    [Fact]
+    public void Ac_coupled_power_matches_what_the_solar_inverters_report()
+    {
+        // Word 84 read 20 while the two Fronius each reported ~47 W over their own API.
+        Assert.Equal(0.0949, Scale.AcKilowatts16Unsigned(20), 4);
+        Assert.Equal(0.0475, Scale.AcKilowatts16Unsigned(10), 4);
+    }
+
+    [Fact]
+    public void Ac_energy_carries_the_extra_factor_of_24()
+    {
+        // 16 counts in the Today block is 1.822 kWh, which SP LINK agrees with.
+        Assert.Equal(1.822, Scale.AcKilowattHours(16), 3);
+    }
+
+    [Fact]
+    public void Sixteen_and_thirty_two_bit_ac_power_use_different_divisors()
+    {
+        // The 32-bit divisor is 8x the 16-bit one; using one for the other is a silent 8x error.
+        Assert.Equal(8.0, Scale.AcKilowatts16(1000) / Scale.AcKilowatts32(1000, 0), 6);
+    }
+
+    [Fact]
+    public void Net_dc_energy_is_signed()
+    {
+        // -10 counts. Read unsigned this lands near half a billion kWh, which is how the bug showed.
+        var net = Scale.DcKilowattHoursSigned32(65526, 65535);
+        Assert.Equal(-1.230, net, 3);
+        Assert.True(Math.Abs(net) < 100, "a signed read must not overflow into millions");
+    }
+
+    [Fact]
+    public void Displayed_ac_power_flips_the_stored_sign()
+    {
+        // A stored -1896 is a +9 kW charge limit, not a negative one.
+        Assert.Equal(8.998, Scale.AcKilowatts16Displayed(63640), 3);
+    }
+
+    [Theory]
+    [InlineData(25600, 100.0)]
+    [InlineData(12800, 50.0)]
+    public void Percentages_are_stored_times_256(ushort raw, double expected) =>
+        Assert.Equal(expected, SpProScaling.Percent(raw)!.Value, 6);
+
+    [Fact]
+    public void A_disabled_percentage_reads_as_null() =>
+        Assert.Null(SpProScaling.Percent(0xFFFF));
+
+    [Fact]
+    public void Frequency_is_centi_hertz() => Assert.Equal(50.0, SpProScaling.Hertz(5000), 6);
+}

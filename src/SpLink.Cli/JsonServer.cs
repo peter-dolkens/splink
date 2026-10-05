@@ -42,6 +42,7 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
         if (fronius is not null) Console.WriteLine("  /fronius     Fronius inverters only");
         Console.WriteLine("  /health      liveness");
         Console.WriteLine("  /metrics     Prometheus text format");
+        Console.WriteLine("  /raw         Raw register block: ?address=<decimal|0xHEX>&words=<1..256>");
 
         using var stopping = cancellationToken.Register(listener.Stop);
         while (!cancellationToken.IsCancellationRequested)
@@ -92,6 +93,41 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
                     // 207 when some answered and some did not: the response is still useful.
                     status = fr.Count > 0 && fr.All(f => f.Healthy) ? 200 : 207;
                     body = JsonSerializer.Serialize(fr.Select(DescribeFronius), Json);
+                    break;
+                }
+                case "/raw":
+                {
+                    // Lets a block the bridge does not decode be inspected without stopping the
+                    // service to take the serial port, which is what wedged the USB device once.
+                    var query = context.Request.QueryString;
+                    if (!TryParseAddress(query["address"], out var address) ||
+                        !int.TryParse(query["words"], out var words) || words is < 1 or > 256)
+                    {
+                        status = 400;
+                        body = JsonSerializer.Serialize(new
+                        {
+                            error = "usage: /raw?address=<decimal|0xHEX>&words=<1..256>",
+                        }, Json);
+                        break;
+                    }
+
+                    try
+                    {
+                        var raw = await sppro.ReadWordsAsync(address, words, cancellationToken).ConfigureAwait(false);
+                        body = JsonSerializer.Serialize(new
+                        {
+                            address,
+                            words = raw.Length,
+                            read_at = DateTimeOffset.Now,
+                            value = raw,
+                            hex = raw.Select(x => x.ToString("X4")).ToArray(),
+                        }, Json);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        status = 503;
+                        body = JsonSerializer.Serialize(new { address, error = ex.Message }, Json);
+                    }
                     break;
                 }
                 case "/health":
@@ -154,6 +190,15 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
         return (sp, fr);
     }
 
+    private static bool TryParseAddress(string? text, out uint address)
+    {
+        address = 0;
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        return text.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+            ? uint.TryParse(text[2..], System.Globalization.NumberStyles.HexNumber, null, out address)
+            : uint.TryParse(text, out address);
+    }
+
     private static object DescribeSpPro(SpProSnapshot s) => new
     {
         taken_at = s.TakenAt,
@@ -200,7 +245,81 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
         },
         dc = s.Live is null ? null : new { amps = Round(s.Live.DcAmps, 2) },
         charger = s.Live?.ChargerState,
-        generator = s.Live is null ? null : new { status = s.Live.GeneratorState, reason = s.Live.GeneratorReason },
+        generator = s.Live is null ? null : new
+        {
+            status = s.Live.GeneratorState,
+            reason = s.Live.GeneratorReason,
+            kilowatts = Round(s.Live.GeneratorKilowatts, 3),
+            kilowatts_5min_avg = Round(s.Live.GeneratorKilowatts5MinAverage, 3),
+            volts = Round(s.Live.GeneratorVolts, 1),
+            amps = Round(s.Live.GeneratorAmps, 2),
+            frequency_hz = Round(s.Live.GeneratorFrequencyHz, 2),
+            max_available_input_kilowatts = Round(s.Live.MaxAvailableInputKilowatts, 3),
+        },
+
+        // The SP PRO's own measurement of AC-coupled solar, which is independent of whatever the
+        // solar inverters report over their own network. Having both lets them check each other.
+        ac_coupled = s.Live is null ? null : new
+        {
+            kilowatts = Round(s.Live.AcCoupledKilowatts, 3),
+            percent = Round(s.Live.AcCoupledPercent, 1),
+            per_inverter = s.Live.AcCoupledKilowattsPerInverter.Select(x => Round(x, 3)).ToArray(),
+        },
+        inverter = s.Live is null ? null : new
+        {
+            kilowatts = Round(s.Live.InverterAcKilowatts, 3),
+            amps = Round(s.Live.InverterAcAmps, 2),
+            mode = s.Live.InverterMode,
+            ac_source_status = s.Live.AcSourceStatus,
+        },
+        battery_trend = s.Live is null ? null : new
+        {
+            load_5min_kilowatts = Round(s.Live.BatteryLoad5MinKilowatts, 3),
+            load_15min_kilowatts = Round(s.Live.BatteryLoad15MinKilowatts, 3),
+        },
+        shunts = s.Live is null ? null : new
+        {
+            shunt1_amps = Round(s.Live.Shunt1Amps, 2),
+            shunt2_amps = Round(s.Live.Shunt2Amps, 2),
+            shunt1_kilowatts = Round(s.Live.Shunt1Kilowatts, 3),
+            shunt2_kilowatts = Round(s.Live.Shunt2Kilowatts, 3),
+        },
+        regulation = s.Live is null ? null : new
+        {
+            active_schedule = s.Live.ActiveSchedule,
+            input_power_limit_kilowatts = Round(s.Live.InputPowerLimitKilowatts, 3),
+            export_power_limit_kilowatts = Round(s.Live.ExportPowerLimitKilowatts, 3),
+            charge_power_limit_kilowatts = Round(s.Live.ChargePowerLimitKilowatts, 3),
+            support_power_limit_kilowatts = Round(s.Live.SupportPowerLimitKilowatts, 3),
+            charger_status = s.Live.RegulationChargerStatus,
+            inverter_lockout = s.Live.InverterLockoutStatus,
+            source_disconnect = s.Live.SourceDisconnectStatus,
+        },
+
+        // Energy accumulators, read on a slower cadence than live data.
+        today_read_at = s.TodayReadAt,
+        today = s.Today is null ? null : new
+        {
+            dc_input_kwh = Round(s.Today.DcInputKilowattHours, 3),
+            dc_output_kwh = Round(s.Today.DcOutputKilowattHours, 3),
+            dc_net_kwh = Round(s.Today.DcNetKilowattHours, 3),
+            inverter_dc_kwh = Round(s.Today.InverterDcKilowattHours, 3),
+            battery_in_kwh = Round(s.Today.BatteryInKilowattHours, 3),
+            battery_out_kwh = Round(s.Today.BatteryOutKilowattHours, 3),
+            ac_load_kwh = Round(s.Today.AcLoadKilowattHours, 3),
+            ac_input_kwh = Round(s.Today.AcInputKilowattHours, 3),
+            ac_export_kwh = Round(s.Today.AcExportKilowattHours, 3),
+            ac_coupled_kwh = Round(s.Today.AcCoupledKilowattHours, 3),
+            ac_coupled_kwh_per_inverter = s.Today.AcCoupledKilowattHoursPerInverter.Select(x => Round(x, 3)).ToArray(),
+            ac_coupled_peak_kilowatts = Round(s.Today.AcCoupledPeakKilowatts, 3),
+            shunt1_kwh = Round(s.Today.Shunt1KilowattHours, 3),
+            shunt2_kwh = Round(s.Today.Shunt2KilowattHours, 3),
+            shunt1_peak_kilowatts = Round(s.Today.Shunt1PeakKilowatts, 3),
+            shunt2_peak_kilowatts = Round(s.Today.Shunt2PeakKilowatts, 3),
+            float_hours = Round(s.Today.FloatHours, 2),
+            ac_input_hours = Round(s.Today.AcInputHours, 2),
+            inverter_run_hours = Round(s.Today.InverterRunHours, 2),
+        },
     };
 
     private static object DescribeFronius(FroniusResult f) => new

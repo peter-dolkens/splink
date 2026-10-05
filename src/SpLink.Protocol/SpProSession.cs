@@ -5,7 +5,7 @@ namespace SpLink.Protocol;
 public sealed record SpProSnapshot(
     DateTimeOffset TakenAt, SpProLiveReading? Live, DateTime? InverterClock, string? Error,
     SpProUnitInfo? Unit = null, double? ClockDriftSeconds = null, DateTimeOffset? ClockReadAt = null,
-    HostClockStatus? HostClock = null)
+    HostClockStatus? HostClock = null, SpProTodayReading? Today = null, DateTimeOffset? TodayReadAt = null)
 {
     public bool Healthy => Error is null && Live is not null;
 }
@@ -30,6 +30,8 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
     private DateTimeOffset _clockReadAt = DateTimeOffset.MinValue;
     private double? _clockDriftSeconds;
     private readonly HostClockProbe _hostClock = new();
+    private SpProTodayReading? _today;
+    private DateTimeOffset _todayReadAt = DateTimeOffset.MinValue;
 
     /// <summary>How long a reading may be reused, so a burst of requests does not re-read the inverter.</summary>
     public TimeSpan CacheFor { get; set; } = TimeSpan.FromSeconds(2);
@@ -43,6 +45,13 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
     /// on the link for no benefit. Between reads the last value is reused.
     /// </summary>
     public TimeSpan ClockInterval { get; set; } = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// How often to re-read the "Today" accumulators. They are energy totals rather than
+    /// instantaneous readings, so a slow cadence loses nothing and keeps the extra round trip
+    /// off the link.
+    /// </summary>
+    public TimeSpan TodayInterval { get; set; } = TimeSpan.FromMinutes(5);
 
     public Action<string>? Log { get; set; }
 
@@ -78,10 +87,17 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
                     _clockDriftSeconds = Drift(host, Math.Round((_clock.Value - DateTime.Now).TotalSeconds, 1));
                 }
 
+                if (_today is null || DateTimeOffset.Now - _todayReadAt >= TodayInterval)
+                {
+                    _today = await client.ReadTodayAsync(cancellationToken).ConfigureAwait(false);
+                    _todayReadAt = DateTimeOffset.Now;
+                }
+
                 // Re-check at probe cadence rather than clock-read cadence, so losing NTP takes the
                 // figure away within the minute instead of up to ClockInterval later.
                 return _cached = new SpProSnapshot(DateTimeOffset.Now, live, _clock, null, unit,
-                                                   Drift(host, _clockDriftSeconds), _clockReadAt, host);
+                                                   Drift(host, _clockDriftSeconds), _clockReadAt, host,
+                                                   _today, _todayReadAt);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -94,7 +110,7 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
                 await CloseAsync().ConfigureAwait(false);
                 return _cached = new SpProSnapshot(DateTimeOffset.Now, _cached?.Live, _cached?.InverterClock,
                                                    ex.Message, _cached?.Unit, Drift(host, _cached?.ClockDriftSeconds),
-                                                   _cached?.ClockReadAt, host);
+                                                   _cached?.ClockReadAt, host, _cached?.Today, _cached?.TodayReadAt);
             }
         }
         finally
@@ -112,6 +128,37 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
     /// </summary>
     internal static double? Drift(HostClockStatus host, double? measured) =>
         host.Synchronized == false ? null : measured;
+
+    /// <summary>
+    /// Reads an arbitrary register block through the live session.
+    /// <para>
+    /// The SP PRO admits one session at a time, so without this the only way to look at a block the
+    /// bridge does not decode was to stop the service and take the port with a separate process.
+    /// Doing that repeatedly wedged the USB device hard enough to need a device-level reset, so
+    /// exploration goes through the gate like everything else. Read-only by construction: there is
+    /// no write counterpart.
+    /// </para>
+    /// </summary>
+    public async Task<ushort[]> ReadWordsAsync(uint address, int wordCount, CancellationToken cancellationToken = default)
+    {
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            _lastUsed = DateTimeOffset.Now;
+            var client = await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
+            return await client.ReadWordsAsync(address, wordCount, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Log?.Invoke($"raw read of {address} failed: {ex.Message}");
+            await CloseAsync().ConfigureAwait(false);
+            throw;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
 
     /// <summary>Closes the link once it has been idle, freeing the port. Run for the lifetime of the host.</summary>
     public async Task RunIdleReaperAsync(CancellationToken cancellationToken)

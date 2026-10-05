@@ -43,6 +43,55 @@ public sealed record SpProLiveReading
     public string GeneratorState { get; init; } = "";
     public string GeneratorReason { get; init; } = "";
 
+    // --- AC-coupled solar, as the SP PRO measures it -------------------------------------
+    /// <summary>
+    /// Total AC-coupled (grid-tied) solar power in kW. SP LINK calls these "Kaco" readings after the
+    /// brand it first supported; they cover any managed AC-coupled inverter. This is the SP PRO's own
+    /// measurement, independent of anything the solar inverters report over their own network.
+    /// </summary>
+    public double AcCoupledKilowatts { get; init; }
+
+    /// <summary>Per-inverter AC-coupled power in kW, up to the five slots the SP PRO tracks.</summary>
+    public double[] AcCoupledKilowattsPerInverter { get; init; } = [];
+
+    /// <summary>AC-coupled output as a percentage, as SP LINK reports it.</summary>
+    public double AcCoupledPercent { get; init; }
+
+    // --- inverter ------------------------------------------------------------------------
+    /// <summary>The inverter's own AC power in kW, which is not the same as the load figure.</summary>
+    public double InverterAcKilowatts { get; init; }
+    public double InverterAcAmps { get; init; }
+    public string InverterMode { get; init; } = "";
+    public string AcSourceStatus { get; init; } = "";
+
+    // --- AC source / generator -----------------------------------------------------------
+    public double GeneratorKilowatts { get; init; }
+    public double GeneratorKilowatts5MinAverage { get; init; }
+    public double GeneratorVolts { get; init; }
+    public double GeneratorAmps { get; init; }
+    public double GeneratorFrequencyHz { get; init; }
+    public double MaxAvailableInputKilowatts { get; init; }
+
+    // --- battery trends ------------------------------------------------------------------
+    public double BatteryLoad5MinKilowatts { get; init; }
+    public double BatteryLoad15MinKilowatts { get; init; }
+
+    // --- DC shunts (null unless a shunt is configured) ------------------------------------
+    public double Shunt1Amps { get; init; }
+    public double Shunt2Amps { get; init; }
+    public double Shunt1Kilowatts { get; init; }
+    public double Shunt2Kilowatts { get; init; }
+
+    // --- system regulation ----------------------------------------------------------------
+    public int ActiveSchedule { get; init; }
+    public double InputPowerLimitKilowatts { get; init; }
+    public double ExportPowerLimitKilowatts { get; init; }
+    public double ChargePowerLimitKilowatts { get; init; }
+    public double SupportPowerLimitKilowatts { get; init; }
+    public string RegulationChargerStatus { get; init; } = "";
+    public string InverterLockoutStatus { get; init; } = "";
+    public string SourceDisconnectStatus { get; init; } = "";
+
     /// <summary>Battery power in kW, derived from volts x amps.</summary>
     public double BatteryKilowatts => BatteryVolts * BatteryAmps / 1000.0;
 
@@ -64,11 +113,45 @@ public static class SpProLiveData
     private const int AcLoadPowerLegacyLo = 59;
     private const int BatteryVolts = 4;
     private const int GeneratorStatus = 62;
+    private const int InverterAcPowerLo = 0;      // 32-bit
+    private const int ActiveSchedule = 24;
+    private const int InputPowerLimit = 25;
+    private const int ExportPowerLimit = 26;
+    private const int ChargePowerLimit = 27;
+    private const int SupportPowerLimit = 28;
+    private const int RegulationChargerStatus = 29;
+    private const int InverterLockoutStatus = 30;
+    private const int SourceDisconnectStatus = 31;
+    private const int InverterMode = 37;
+    private const int GeneratorStartReason = 38;
+    private const int AcSourceStatus = 40;
+    private const int Shunt1Amps = 46;
+    private const int Shunt2Amps = 47;
+    private const int Shunt1Power = 48;
+    private const int Shunt2Power = 49;
+    private const int GeneratorPower5Min = 51;
+    private const int GeneratorAmps = 52;
+    private const int GeneratorFrequency = 53;
+    private const int MaxAvailableInputLo = 54;   // 32-bit
+    private const int AcInverterRmsAmps = 57;
+    private const int GeneratorVolts = 61;
+    private const int BatteryLoad5MinLo = 63;     // 32-bit
+    private const int BatteryLoad15MinLo = 65;    // 32-bit
+    private const int AcCoupledPerInverter = 68;  // five consecutive slots
+    private const int AcCoupledPercentLo = 73;
+    private const int AcCoupledTotalLegacy = 67;
+    private const int GeneratorPowerV20 = 83;     // memory map 20+; word 50 is the legacy slot
+    private const int AcCoupledTotalV20 = 84;     // memory map 20+; word 67 is the legacy slot
 
     public static SpProLiveReading Decode(ReadOnlySpan<ushort> w, SpProScaleFactors scale)
     {
         if (w.Length < SpProRegisters.NowBlockWordCount)
             throw new ArgumentException($"expected {SpProRegisters.NowBlockWordCount} words, got {w.Length}", nameof(w));
+
+        // A span cannot be captured, so gather the per-inverter slots before the initializer.
+        var perInverter = new double[5];
+        for (var i = 0; i < perInverter.Length; i++)
+            perInverter[i] = scale.AcKilowatts16Unsigned(w[AcCoupledPerInverter + i]);
 
         return new SpProLiveReading
         {
@@ -84,11 +167,80 @@ public static class SpProLiveData
             ChargerState = ChargerStateName(w[ChargerStatus]),
             GeneratorState = GeneratorStatusName(w[GeneratorStatus]),
             GeneratorReason = GeneratorReasonName(w[GeneratorRunReason]),
+
+            // SP LINK reads the total from word 84 on memory map 20+ and word 67 before it. Every
+            // SP PRO this tool has met reports 33, and the two words have always agreed, so prefer
+            // the modern slot and fall back only when it is empty.
+            AcCoupledKilowatts = scale.AcKilowatts16Unsigned(
+                w[AcCoupledTotalV20] != 0 ? w[AcCoupledTotalV20] : w[AcCoupledTotalLegacy]),
+            AcCoupledKilowattsPerInverter = perInverter,
+            AcCoupledPercent = SpProScaling.Deci(w[AcCoupledPercentLo]),
+
+            InverterAcKilowatts = scale.AcKilowatts32(w[InverterAcPowerLo], w[InverterAcPowerLo + 1]),
+            InverterAcAmps = scale.AcAmps(w[AcInverterRmsAmps]),
+            InverterMode = InverterModeName(w[InverterMode]),
+            AcSourceStatus = AcSourceStatusName(w[AcSourceStatus]),
+
+            GeneratorKilowatts = scale.AcKilowatts16Displayed(w[GeneratorPowerV20]),
+            GeneratorKilowatts5MinAverage = scale.AcKilowatts16Displayed(w[GeneratorPower5Min]),
+            GeneratorVolts = scale.AcVolts(w[GeneratorVolts]),
+            GeneratorAmps = scale.AcAmps(w[GeneratorAmps]),
+            GeneratorFrequencyHz = SpProScaling.Hertz(w[GeneratorFrequency]),
+            MaxAvailableInputKilowatts = scale.AcKilowatts32(w[MaxAvailableInputLo], w[MaxAvailableInputLo + 1]),
+
+            BatteryLoad5MinKilowatts = scale.DcKilowatts32(w[BatteryLoad5MinLo], w[BatteryLoad5MinLo + 1]),
+            BatteryLoad15MinKilowatts = scale.DcKilowatts32(w[BatteryLoad15MinLo], w[BatteryLoad15MinLo + 1]),
+
+            Shunt1Amps = scale.DcAmps(w[Shunt1Amps]),
+            Shunt2Amps = scale.DcAmps(w[Shunt2Amps]),
+            Shunt1Kilowatts = scale.DcKilowatts16(w[Shunt1Power]),
+            Shunt2Kilowatts = scale.DcKilowatts16(w[Shunt2Power]),
+
+            ActiveSchedule = w[ActiveSchedule],
+            InputPowerLimitKilowatts = scale.AcKilowatts16Displayed(w[InputPowerLimit]),
+            ExportPowerLimitKilowatts = scale.AcKilowatts16Displayed(w[ExportPowerLimit]),
+            ChargePowerLimitKilowatts = scale.AcKilowatts16Displayed(w[ChargePowerLimit]),
+            SupportPowerLimitKilowatts = scale.AcKilowatts16Displayed(w[SupportPowerLimit]),
+            RegulationChargerStatus = ChargerLockoutName(w[RegulationChargerStatus]),
+            InverterLockoutStatus = ChargerLockoutName(w[InverterLockoutStatus]),
+            SourceDisconnectStatus = ChargerLockoutName(w[SourceDisconnectStatus]),
+
             RawWords = w.ToArray(),
         };
     }
 
     private static int Int32At(ReadOnlySpan<ushort> w, int loIndex) => w[loIndex] | (w[loIndex + 1] << 16);
+
+    public static string InverterModeName(ushort value) => value switch
+    {
+        0 => "Idle",
+        1 => "Econo",
+        2 => "On",
+        3 => "Sync",
+        _ => $"Unknown ({value})",
+    };
+
+    /// <summary>
+    /// The settings-version-22 table. Codes 2-5 and 7 all collapse to "in tolerance" there, where
+    /// older firmware distinguished lockout and capacity-limit states.
+    /// </summary>
+    public static string AcSourceStatusName(ushort value) => value switch
+    {
+        0 => "AC Source Not Present",
+        1 => "E-N Link Not Detected",
+        2 or 3 or 4 or 5 or 7 => "AC Source in Tolerance",
+        6 => "Outside operating range",
+        8 => "Volts too high for freq",
+        9 => "Disconnected by DRM 0",
+        _ => $"Unknown ({value})",
+    };
+
+    public static string ChargerLockoutName(ushort value) => value switch
+    {
+        0 => "Not locked out",
+        1 => "Lockout Requested",
+        _ => $"Unknown ({value})",
+    };
 
     public static string ChargerStateName(ushort value) => value switch
     {

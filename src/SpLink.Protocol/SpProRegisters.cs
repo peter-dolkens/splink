@@ -33,6 +33,18 @@ public static class SpProRegisters
     /// <summary>4 words: model, 32-bit serial number, hardware revision.</summary>
     public const uint UnitInfo = 41053;
 
+    /// <summary>68 words backing SP LINK's "Today" tab: energy accumulators and run hours.</summary>
+    public const uint TodayBlock = 41135;
+    public const int TodayBlockWordCount = 68;
+
+    /// <summary>
+    /// 24 words of status, of which word 2 is the memory map version. Several fields moved
+    /// between versions, so decoders need it to pick the right word.
+    /// </summary>
+    public const uint ConfigStatus = 40967;
+    public const int ConfigStatusWordCount = 8;
+    public const int MemoryMapVersionOffset = 2;
+
     /// <summary>Registers that are part of the connection handshake rather than device settings.</summary>
     public static bool IsConnectionLifecycleRegister(uint address)
         => address is LoginChallenge or Port1Disconnect or Port2Disconnect;
