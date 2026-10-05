@@ -44,6 +44,8 @@ internal static class SpLinkCli
 
         Options:
           --allow-writes                          Permit writes to the inverter. WITHOUT THIS THE TOOL IS READ-ONLY.
+          --allow-raw                             'serve' only: enable /raw, which has no cache and
+                                          so can drive unlimited inverter traffic. Local only.
           --password <text>                       SP PRO login password (default "Selectronic SP PRO", or $SPLINK_PASSWORD)
           --timeout <ms>                          Per-request response timeout (default 1000; 5000 via select.live)
           --verbose                               Hex-dump every frame to stderr
@@ -55,7 +57,7 @@ internal static class SpLinkCli
         """;
 
     private static readonly HashSet<string> BooleanFlags = new(StringComparer.OrdinalIgnoreCase)
-        { "now", "verbose", "simulate", "select-live", "allow-writes", "json", "all", "raw", "help", "h" };
+        { "now", "verbose", "simulate", "select-live", "allow-writes", "allow-raw", "json", "all", "raw", "help", "h" };
 
     private static async Task<int> Main(string[] args)
     {
@@ -302,7 +304,7 @@ internal static class SpLinkCli
         await using (fronius)
         {
             var port = options.Get("http-port") is string p ? int.Parse(p, CultureInfo.InvariantCulture) : 8080;
-            var server = new JsonServer(session, port, fronius);
+            var server = new JsonServer(session, port, fronius, allowRaw: options.Has("allow-raw"));
             if (fronius is not null)
                 Console.WriteLine($"Fronius (on demand): {string.Join(", ", inverters.Select(i => $"{i.Name}@{i.Host}"))}");
             Console.WriteLine($"On-demand: no inverter traffic until a request arrives. "

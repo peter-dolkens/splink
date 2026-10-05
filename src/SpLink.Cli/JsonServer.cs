@@ -11,7 +11,7 @@ namespace SpLink.Cli;
 /// A read-only HTTP surface over the SP PRO and any configured Fronius inverters.
 /// Everything is fetched on demand: an idle bridge puts no traffic on any inverter.
 /// </summary>
-internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? fronius = null)
+internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? fronius = null, bool allowRaw = false)
 {
     private static readonly JsonSerializerOptions Json = new()
     {
@@ -97,8 +97,20 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
                 }
                 case "/raw":
                 {
-                    // Lets a block the bridge does not decode be inspected without stopping the
-                    // service to take the serial port, which is what wedged the USB device once.
+                    // Every other endpoint answers from a 2-second cache, so no amount of external
+                    // traffic turns into more than one inverter read per two seconds. This one
+                    // drives a fresh serial round trip per request, which makes it a way to hammer
+                    // the SP PRO over the link and to hold the port open indefinitely. It is a
+                    // diagnostic, so it is off unless asked for and never answers a tunnelled
+                    // request. 404 rather than 403: an endpoint that is not enabled should not
+                    // advertise that it exists.
+                    if (!allowRaw || !IsLocalRequest(context.Request))
+                    {
+                        status = 404;
+                        body = JsonSerializer.Serialize(new { error = "not found" }, Json);
+                        break;
+                    }
+
                     var query = context.Request.QueryString;
                     if (!TryParseAddress(query["address"], out var address) ||
                         !int.TryParse(query["words"], out var words) || words is < 1 or > 256)
@@ -188,6 +200,25 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
         var sp = await spTask.ConfigureAwait(false);
         var fr = frTask is null ? null : await frTask.ConfigureAwait(false);
         return (sp, fr);
+    }
+
+    /// <summary>
+    /// True only for a request that reached us directly on the loopback interface.
+    /// <para>
+    /// cloudflared runs on the same host and proxies from 127.0.0.1, so the peer address alone
+    /// cannot tell a local caller from the public internet. It does add its own forwarding
+    /// headers, so their presence is what gives a tunnelled request away. Anything unrecognised
+    /// is treated as remote.
+    /// </para>
+    /// </summary>
+    private static bool IsLocalRequest(HttpListenerRequest request)
+    {
+        foreach (var header in (string[])["CF-Connecting-IP", "CF-Ray", "X-Forwarded-For", "X-Forwarded-Proto", "Cf-Warp-Tag-Id"])
+            if (!string.IsNullOrEmpty(request.Headers[header]))
+                return false;
+
+        var remote = request.RemoteEndPoint?.Address;
+        return remote is not null && System.Net.IPAddress.IsLoopback(remote);
     }
 
     private static bool TryParseAddress(string? text, out uint address)
