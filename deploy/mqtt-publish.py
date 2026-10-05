@@ -9,7 +9,7 @@ Discovery configs are retained so Home Assistant rebuilds the entities after a r
 without waiting for us. Availability uses a retained LWT, so if this process dies the
 entities go unavailable immediately rather than silently holding their last value.
 """
-import json, os, signal, sys, time, urllib.request
+import json, os, re, signal, sys, time, urllib.request
 import paho.mqtt.client as mqtt
 
 CONF = os.environ.get("MQTT_ENV", "/etc/splink/mqtt.env")
@@ -67,6 +67,73 @@ def sensor(obj_id, name, state_topic, tpl, dev, unit=None, dclass=None,
     if precision is not None: cfg["suggested_display_precision"] = precision
     if extra: cfg.update(extra)
     return cfg
+
+
+# Unit -> (device_class, state_class). Anything not listed is published without a class, which
+# still records and graphs; it just gets no special handling in Home Assistant.
+_UNIT_CLASS = {
+    "kWh": ("energy", "total_increasing"),
+    "kW":  ("power", "measurement"),
+    "W":   ("power", "measurement"),
+    "V":   ("voltage", "measurement"),
+    "A":   ("current", "measurement"),
+    "\u00b0C": ("temperature", "measurement"),
+    "Hz":  ("frequency", "measurement"),
+    "h":   ("duration", "total_increasing"),
+    "%":   (None, "measurement"),
+}
+
+
+def slug(text):
+    """CamelCase to snake_case, keeping acronyms intact: ACOutStatus -> ac_out_status."""
+    s = re.sub(r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])", "_", text)
+    s = re.sub(r"[^0-9A-Za-z]+", "_", s).lower()
+    return re.sub(r"_+", "_", s).strip("_")
+
+
+def block_discovery_configs(snapshot):
+    """Build a sensor per decoded block field, from whatever the bridge is currently reporting.
+
+    Deriving these from the live payload rather than a hardcoded list means a field added to the
+    decoder shows up without touching this file. They are all diagnostic: there are a few hundred,
+    most of them rarely interesting, and the point is to have them recorded so the useful ones can
+    be identified and the rest dropped later.
+    """
+    out = []
+    d = device("sppro")
+    for block, blk in (snapshot.get("blocks") or {}).items():
+        for field, spec in blk.get("fields", {}).items():
+            if spec.get("value") is None:
+                continue
+            unit = spec.get("unit")
+            dclass, sclass = _UNIT_CLASS.get(unit, (None, None))
+            obj = f"sp_pro_{slug(block)}_{slug(field)}"[:60]
+            cfg = {
+                "name": f"{block} {field}",
+                "object_id": obj,
+                "unique_id": f"solarbridge_{obj}",
+                "state_topic": f"{PREFIX}/blocks/state",
+                # Flat "Block.Field" keys keep the template simple and avoid nesting surprises.
+                "value_template": "{{ value_json['%s.%s'] }}" % (block, field),
+                "device": d,
+                "entity_category": "diagnostic",
+                "availability": [{"topic": f"{PREFIX}/status"}],
+            }
+            if unit: cfg["unit_of_measurement"] = unit
+            if dclass: cfg["device_class"] = dclass
+            if sclass: cfg["state_class"] = sclass
+            out.append((f"{DISCOVERY}/sensor/{obj}/config", cfg))
+    return out
+
+
+def flatten_blocks(snapshot):
+    """The decoded values alone, as flat Block.Field keys."""
+    out = {}
+    for block, blk in (snapshot.get("blocks") or {}).items():
+        for field, spec in blk.get("fields", {}).items():
+            if spec.get("value") is not None:
+                out[f"{block}.{field}"] = spec["value"]
+    return out
 
 
 def discovery_configs():
@@ -234,6 +301,7 @@ def main():
     client.will_set(f"{PREFIX}/status", "offline", retain=True)
 
     configs = discovery_configs()
+    block_configs: list = []   # filled from the first snapshot; see the main loop
 
     def on_connect(_client, _userdata, _flags, reason, _props=None):
         """Re-announce on every connect, not just the first.
@@ -246,12 +314,12 @@ def main():
         if reason != 0:
             print(f"connect failed: {reason}", file=sys.stderr, flush=True)
             return
-        for topic, cfg in configs:
+        for topic, cfg in configs + block_configs:
             _client.publish(topic, json.dumps(cfg), retain=True)
         _client.publish(f"{PREFIX}/status", "online", retain=True)
         # Force the next cycle to publish state, so a reconnect does not wait for a change.
         _last_sent.clear()
-        print(f"connected: re-announced {len(configs)} discovery configs", flush=True)
+        print(f"connected: re-announced {len(configs) + len(block_configs)} discovery configs", flush=True)
 
     client.on_connect = on_connect
     client.connect(conf.get("MQTT_HOST", "127.0.0.1"), int(conf.get("MQTT_PORT", "1883")), keepalive=60)
@@ -294,8 +362,23 @@ def main():
                 sp["host_clock"] = {k: v for k, v in sp["host_clock"].items()
                                     if k in ("synchronized", "source", "stratum")}
 
+            # The block sweep lands on its own topic: a few hundred mostly-static diagnostic
+            # values that would otherwise bloat every SP PRO publish and defeat change detection.
+            # Blocks hang off sp_pro in the combined payload the bridge serves at "/".
+            blocks = flatten_blocks(sp)
+            if blocks and not block_configs:
+                block_configs.extend(block_discovery_configs(sp))
+                for topic, cfg in block_configs:
+                    client.publish(topic, json.dumps(cfg), retain=True)
+                print(f"announced {len(block_configs)} block sensors", flush=True)
+            sp.pop("blocks", None)
+            sp.pop("blocks_read_at", None)
+
             sent = publish_if_changed(client, f"{PREFIX}/sppro/state",
                                       json.dumps(quantise(sp), sort_keys=True), force)
+            if blocks:
+                sent += publish_if_changed(client, f"{PREFIX}/blocks/state",
+                                           json.dumps(quantise(blocks), sort_keys=True), force)
             for f in snap.get("fronius") or []:
                 g = {k: v for k, v in f.items() if k not in ("taken_at",)}
                 # The inverter's own clock ticks every read. Like the SP PRO clock it carries
@@ -305,7 +388,7 @@ def main():
                     g["status"] = {k: v for k, v in g["status"].items() if k != "device_time"}
                 sent += publish_if_changed(client, f"{PREFIX}/fronius/{f['name']}/state",
                                            json.dumps(quantise(g), sort_keys=True), force)
-            skipped += 3 - sent
+            skipped += 4 - sent
             published += sent
             if fails:
                 print(f"bridge recovered after {fails} failures", flush=True)
