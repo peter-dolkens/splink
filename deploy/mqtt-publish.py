@@ -13,7 +13,9 @@ import json, os, re, signal, sys, time, urllib.request
 import paho.mqtt.client as mqtt
 
 CONF = os.environ.get("MQTT_ENV", "/etc/splink/mqtt.env")
-BRIDGE = os.environ.get("BRIDGE_URL", "http://localhost:8080/")
+# The bridge omits the block sweep unless asked, since it is most of the payload and the public
+# feed rarely wants it. The block sensors depend on it, so request it explicitly.
+BRIDGE = os.environ.get("BRIDGE_URL", "http://localhost:8080/?blocks=true")
 INTERVAL = int(os.environ.get("INTERVAL", "60"))
 # Republish even when unchanged this often, so retained values stay fresh.
 FORCE_EVERY = int(os.environ.get("FORCE_EVERY", "900"))

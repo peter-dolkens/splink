@@ -39,6 +39,7 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
         Console.WriteLine($"JSON API listening on port {port} (read-only) — http://localhost:{port}/");
         Console.WriteLine("  /            SP PRO live data" + (fronius is not null ? " + Fronius inverters" : ""));
         Console.WriteLine("  /sppro       SP PRO only");
+        Console.WriteLine("               add ?blocks=true and/or ?logs=true for the full sweep");
         if (fronius is not null) Console.WriteLine("  /fronius     Fronius inverters only");
         Console.WriteLine("  /health      liveness");
         Console.WriteLine("  /metrics     Prometheus text format");
@@ -59,6 +60,13 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
     private async Task HandleAsync(HttpListenerContext context, CancellationToken cancellationToken)
     {
         var path = context.Request.Url?.AbsolutePath ?? "/";
+
+        // The block sweep and the logged records are most of the payload and are wanted rarely, so
+        // they are opt-in per request. They are still captured on their own cadence either way;
+        // this only decides what a given response carries.
+        var query = context.Request.QueryString;
+        var wantBlocks = IsTrue(query["blocks"]);
+        var wantLogs = IsTrue(query["logs"]);
         int status = 200;
         string contentType = "application/json";
         string body;
@@ -73,7 +81,7 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
                     status = sp.Healthy ? 200 : 503;
                     body = JsonSerializer.Serialize(new
                     {
-                        sp_pro = DescribeSpPro(sp),
+                        sp_pro = DescribeSpPro(sp, wantBlocks, wantLogs),
                         fronius = fr?.Select(DescribeFronius),
                         solar_total_watts = TotalSolarWatts(fr),
                     }, Json);
@@ -83,7 +91,7 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
                 {
                     var sp = await sppro.ReadAsync(cancellationToken).ConfigureAwait(false);
                     status = sp.Healthy ? 200 : 503;
-                    body = JsonSerializer.Serialize(DescribeSpPro(sp), Json);
+                    body = JsonSerializer.Serialize(DescribeSpPro(sp, wantBlocks, wantLogs), Json);
                     break;
                 }
                 case "/fronius":
@@ -111,7 +119,6 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
                         break;
                     }
 
-                    var query = context.Request.QueryString;
                     if (TryParseAddress(query["address"], out var probe) &&
                         int.TryParse(query["words"], out var probeWords) &&
                         OverlapsAccessCode(probe, probeWords))
@@ -247,6 +254,10 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
         return address <= AccessCodeLast && last >= AccessCodeFirst;
     }
 
+    private static bool IsTrue(string? value) =>
+        value is not null && (value.Equals("true", StringComparison.OrdinalIgnoreCase)
+                              || value is "1" || value.Equals("yes", StringComparison.OrdinalIgnoreCase));
+
     private static bool TryParseAddress(string? text, out uint address)
     {
         address = 0;
@@ -256,7 +267,7 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
             : uint.TryParse(text, out address);
     }
 
-    private static object DescribeSpPro(SpProSnapshot s) => new
+    private static object DescribeSpPro(SpProSnapshot s, bool includeBlocks, bool includeLogs) => new
     {
         taken_at = s.TakenAt,
         healthy = s.Healthy,
@@ -357,8 +368,8 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
         // records are paged only when it moves, so what polling cannot see — discrete events,
         // per-window extremes, and whatever happened while the bridge was down — is not lost to
         // the circular buffer wrapping.
-        logs_checked_at = s.LogsCheckedAt,
-        logs = s.Logs?.ToDictionary(
+        logs_checked_at = includeLogs ? s.LogsCheckedAt : null,
+        logs = !includeLogs ? null : s.Logs?.ToDictionary(
             u => u.Type.ToString(),
             u => (object)new
             {
@@ -378,8 +389,8 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
         // Every register block SP LINK displays, swept on a slow cadence. Fields whose converter
         // has not been transcribed still appear, carrying their raw words and the converter's
         // name, so nothing the inverter exposes is silently dropped.
-        blocks_read_at = s.BlocksReadAt,
-        blocks = s.Blocks?.ToDictionary(
+        blocks_read_at = includeBlocks ? s.BlocksReadAt : null,
+        blocks = !includeBlocks ? null : s.Blocks?.ToDictionary(
             b => b.Name,
             b => (object)new
             {
