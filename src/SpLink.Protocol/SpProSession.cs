@@ -103,7 +103,7 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
                     // rather than letting a consumer compare a stale timestamp against "now".
                     // DateTime.Now is this host's clock, which is why the measurement is only
                     // reported while that clock is known to be disciplined.
-                    _clockDriftSeconds = Drift(host, Math.Round((_clock.Value - DateTime.Now).TotalSeconds, 1));
+                    _clockDriftSeconds = Drift(host, SpProScaling.Round((_clock.Value - DateTime.Now).TotalSeconds, 1));
                 }
 
                 if (_today is null || DateTimeOffset.Now - _todayReadAt >= TodayInterval)

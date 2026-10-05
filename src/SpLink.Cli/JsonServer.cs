@@ -467,7 +467,7 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
     private static double? TotalSolarWatts(IReadOnlyList<FroniusResult>? all)
     {
         var readings = all?.Where(f => f.Healthy && f.Reading?.AcPowerWatts is not null).ToList();
-        return readings is null or { Count: 0 } ? null : Math.Round(readings.Sum(f => f.Reading!.AcPowerWatts!.Value), 1);
+        return readings is null or { Count: 0 } ? null : SpProScaling.Round(readings.Sum(f => f.Reading!.AcPowerWatts!.Value), 1);
     }
 
     private static string Metrics(SpProSnapshot s, IReadOnlyList<FroniusResult>? fronius)
@@ -515,5 +515,6 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
         sb.AppendLine($"{nameWithLabels} {value.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
     }
 
-    private static double? Round(double? v, int places) => v is null ? null : Math.Round(v.Value, places);
+    // Half away from zero, as SP LINK rounds; see SpProScaling.Round.
+    private static double? Round(double? v, int places) => SpProScaling.Round(v, places);
 }

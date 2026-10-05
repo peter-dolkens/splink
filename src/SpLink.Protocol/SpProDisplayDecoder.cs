@@ -208,7 +208,7 @@ public static class SpProDisplayDecoder
         };
     }
 
-    private static object Round(double value, int digits) => Math.Round(value, digits);
+    private static object Round(double value, int digits) => SpProScaling.Round(value, digits);
 
     /// <summary>Lists the module positions whose bit is <em>clear</em>, which is how SP LINK reads it.</summary>
     private static string ModStatus(ushort value)
@@ -239,7 +239,7 @@ public static class SpProDisplayDecoder
         var apparent = Math.Sqrt(real * real + reactive * reactive);
         var pf = apparent != 0 ? Math.Abs(real / apparent) : 1.0;
         var sense = (real > 0 && reactive > 0) || (real < 0 && reactive < 0) ? "Leading" : "Lagging";
-        return Math.Round(pf, 3) == 1.0 ? "1.000" : $"{pf:0.000} {sense}";
+        return SpProScaling.Round(pf, 3) == 1.0 ? "1.000" : $"{pf:0.000} {sense}";
     }
 
     /// <summary>LG serials are big-endian within each word, unlike everything else here.</summary>

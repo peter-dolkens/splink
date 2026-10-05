@@ -85,4 +85,20 @@ public static class SpProScaling
     public static double Hours(ushort minutes) => minutes / 60.0;
     public static double Hours32(ushort lo, ushort hi) => Unsigned32(lo, hi) / 60.0;
     public static double Deci(ushort raw) => raw / 10.0;
+
+    /// <summary>
+    /// Rounds the way SP LINK does: half away from zero, not .NET's default banker's rounding.
+    /// <para>
+    /// This is not a cosmetic difference here. The scale factors divide by powers of two
+    /// (327680, 3276800), so raw counts land exactly on a midpoint far more often than in
+    /// ordinary data — 15.625, 0.0625, 2.5 — and banker's rounding sends half of those the other
+    /// way. SP LINK adds half and truncates (mLowLevelDataManipulation.RealRound), so matching it
+    /// is what makes our output comparable with its CSV exports.
+    /// </para>
+    /// </summary>
+    public static double Round(double value, int digits) =>
+        Math.Round(value, digits, MidpointRounding.AwayFromZero);
+
+    public static double? Round(double? value, int digits) =>
+        value is null ? null : Round(value.Value, digits);
 }

@@ -269,3 +269,39 @@ public class ScalingTests
     [Fact]
     public void Frequency_is_centi_hertz() => Assert.Equal(50.0, SpProScaling.Hertz(5000), 6);
 }
+
+public class RoundingTests
+{
+    [Theory]
+    // Reported against a second SPMC482-AU: SP LINK rounds half away from zero, where .NET's
+    // Math.Round defaults to banker's. 15.625 -> 15.63 is the reporter's own example.
+    [InlineData(15.625, 2, 15.63)]
+    [InlineData(-15.625, 2, -15.63)]
+    [InlineData(0.125, 2, 0.13)]
+    [InlineData(0.0625, 3, 0.063)]
+    [InlineData(2.5, 0, 3.0)]
+    [InlineData(3.5, 0, 4.0)]
+    public void Rounds_half_away_from_zero_as_sp_link_does(double value, int digits, double expected) =>
+        Assert.Equal(expected, SpProScaling.Round(value, digits));
+
+    [Fact]
+    public void Real_readings_land_on_midpoints_at_a_regular_stride()
+    {
+        // Why the rounding mode is not cosmetic: the scale factors are dyadic, so exact midpoints
+        // recur at a fixed interval in the raw counts rather than turning up by chance. Battery
+        // current at two decimals hits one every 128 counts, which ordinary readings pass through
+        // constantly. Banker's rounding would send half of them the other way.
+        var scale = SpProScaleFactors.FromWords([5300, 2934, 1050, 16000, 530, 180]);
+
+        Assert.Equal(3.125, scale.DcAmps(64), 9);
+        Assert.Equal(3.13, SpProScaling.Round(scale.DcAmps(64), 2));
+        Assert.Equal(3.12, Math.Round(scale.DcAmps(64), 2));   // what .NET would have given
+
+        var midpoints = Enumerable.Range(1, 1280)
+            .Count(i => Math.Abs(scale.DcAmps((ushort)i) * 100 % 1 - 0.5) < 1e-9);
+        Assert.Equal(10, midpoints);
+    }
+
+    [Fact]
+    public void A_null_reading_stays_null() => Assert.Null(SpProScaling.Round(null, 2));
+}

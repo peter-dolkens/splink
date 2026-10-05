@@ -97,7 +97,7 @@ public static class SpProConfigReader
             "NumericalWhichIsDisplayedInHoursButStoredInMinutes" => Scaled(raw, 60),
             "Numerical_TemperatureCoefficient" => Scaled(raw, 10),
             // Per-cell millivolts scaled up by the string's cell count.
-            "DCVoltage" => $"{Math.Round(raw * batteryCellCount / 1000m, 1).ToString(CultureInfo.InvariantCulture)} V",
+            "DCVoltage" => $"{Math.Round(raw * batteryCellCount / 1000m, 1, MidpointRounding.AwayFromZero).ToString(CultureInfo.InvariantCulture)} V",
             // Stored in hundredths. The unit (kW/kVA/A) comes from a companion setting, so it is not asserted here.
             "InputPower" => Scaled(raw, 100),
             "BaudRate" => SpProRegisters.BaudCodeToString(raw),
