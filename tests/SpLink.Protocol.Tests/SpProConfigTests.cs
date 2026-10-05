@@ -74,6 +74,8 @@ public class SpProConfigTests
     [Fact]
     public void Unit_info_decodes_model_serial_and_cell_count()
     {
+        // A made-up serial: the 32-bit split is what is under test, and keeping a real one here
+        // only invites it into the public repo, where it has to be scrubbed out again every sync.
         var unit = SpProUnitInfo.FromWords([0, 0x86A1, 0x0001, 25]);
 
         Assert.Equal("SPMC482", unit.Model);
@@ -156,5 +158,57 @@ public class ChangeSignConverterTests
                      SpProConfigReader.Decode("NumericalWhichIsStoredInDeciUnitsAndChangeSign", 40));
         Assert.Equal(SpProConfigReader.Decode("NumericalAndChangeSign", 10),
                      SpProConfigReader.Decode("NumericalWhichIsStoredInDeciUnitsAndChangeSign", 100));
+    }
+}
+
+public class UnitInfoDescriptionTests
+{
+    private static SpProUnitInfo Decode(int modelIndex, int revision) =>
+        SpProUnitInfo.FromWords([(ushort)modelIndex, 0x86A1, 0x0001, (ushort)revision]);
+
+    [Fact]
+    public void Rating_steps_up_at_hardware_revision_11()
+    {
+        // The same model number is a different machine either side of the facelift.
+        Assert.Equal("48V DC, 6kW, 240V AC", Decode(0, 10).ModelDescription);
+        Assert.Equal("48V DC, 7.5kW, 240V AC", Decode(0, 11).ModelDescription);
+    }
+
+    [Theory]
+    // Rev 11+ descriptions against the published SP PRO Series 2i ratings (BR0007_26),
+    // which is independent of the source they were lifted from.
+    [InlineData(0, "SPMC482", "48V DC, 7.5kW, 240V AC")]
+    [InlineData(1, "SPMC481", "48V DC, 5kW, 240V AC")]
+    [InlineData(2, "SPMC241", "24V DC, 4.5kW, 240V AC")]
+    [InlineData(3, "SPLC1202", "120V DC, 20kW, 240V AC")]
+    [InlineData(4, "SPMC1201", "120V DC, 7.5kW, 240V AC")]
+    [InlineData(5, "SPMC240", "24V DC, 3kW, 240V AC")]
+    [InlineData(7, "SPLC1200", "120V DC, 15kW, 240V AC")]
+    [InlineData(8, "SPMC480", "48V DC, 3.5kW, 240V AC")]
+    public void Current_hardware_matches_the_published_datasheet(int index, string model, string description)
+    {
+        var unit = Decode(index, 25);
+        Assert.Equal(model, unit.Model);
+        Assert.Equal(description, unit.ModelDescription);
+    }
+
+    [Fact]
+    public void The_unused_model_slot_is_not_invented()
+    {
+        // Slot 9 is empty upstream. Naming it invites a wrong rating on hardware we have never seen.
+        var unit = Decode(9, 25);
+        Assert.Equal("Unknown (9)", unit.Model);
+        Assert.Equal("", unit.ModelDescription);
+    }
+
+    [Fact]
+    public void A_revision_25_spmc482_reads_as_its_datasheet_says()
+    {
+        // Model word 0 with revision 25, as read off real hardware.
+        var unit = SpProUnitInfo.FromWords([0x0000, 0x86A1, 0x0001, 0x0019]);
+        Assert.Equal("SPMC482", unit.Model);
+        Assert.Equal("48V DC, 7.5kW, 240V AC", unit.ModelDescription);
+        Assert.Equal(25, unit.HardwareRevision);
+        Assert.Equal(24, unit.BatteryCellCount);
     }
 }
