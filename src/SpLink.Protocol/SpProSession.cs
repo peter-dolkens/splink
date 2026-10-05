@@ -6,7 +6,8 @@ public sealed record SpProSnapshot(
     DateTimeOffset TakenAt, SpProLiveReading? Live, DateTime? InverterClock, string? Error,
     SpProUnitInfo? Unit = null, double? ClockDriftSeconds = null, DateTimeOffset? ClockReadAt = null,
     HostClockStatus? HostClock = null, SpProTodayReading? Today = null, DateTimeOffset? TodayReadAt = null,
-    IReadOnlyList<SpProBlockReading>? Blocks = null, DateTimeOffset? BlocksReadAt = null)
+    IReadOnlyList<SpProBlockReading>? Blocks = null, DateTimeOffset? BlocksReadAt = null,
+    IReadOnlyList<SpProLogUpdate>? Logs = null, DateTimeOffset? LogsCheckedAt = null)
 {
     public bool Healthy => Error is null && Live is not null;
 }
@@ -35,6 +36,9 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
     private DateTimeOffset _todayReadAt = DateTimeOffset.MinValue;
     private IReadOnlyList<SpProBlockReading>? _blocks;
     private DateTimeOffset _blocksReadAt = DateTimeOffset.MinValue;
+    private SpProLogWatcher? _logWatcher;
+    private IReadOnlyList<SpProLogUpdate>? _logs;
+    private DateTimeOffset _logsCheckedAt = DateTimeOffset.MinValue;
 
     /// <summary>How long a reading may be reused, so a burst of requests does not re-read the inverter.</summary>
     public TimeSpan CacheFor { get; set; } = TimeSpan.FromSeconds(2);
@@ -61,6 +65,12 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
     /// the blocks are mostly accumulators and configuration-shaped values that barely move.
     /// </summary>
     public TimeSpan BlockSweepInterval { get; set; } = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// How often to check the log write pointers. Each check is four five-word reads, so this can
+    /// be frequent; records are only paged when a pointer has actually moved.
+    /// </summary>
+    public TimeSpan LogCheckInterval { get; set; } = TimeSpan.FromMinutes(5);
 
     public Action<string>? Log { get; set; }
 
@@ -108,11 +118,22 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
                     _blocksReadAt = DateTimeOffset.Now;
                 }
 
+                if (_logs is null || DateTimeOffset.Now - _logsCheckedAt >= LogCheckInterval)
+                {
+                    _logWatcher ??= new SpProLogWatcher(client) { Log = Log };
+                    var updates = await _logWatcher.PollAsync(cancellationToken).ConfigureAwait(false);
+                    // Carry forward the last records seen for each log, so a consumer polling
+                    // faster than the check interval still sees them rather than an empty list.
+                    _logs = Merge(_logs, updates);
+                    _logsCheckedAt = DateTimeOffset.Now;
+                }
+
                 // Re-check at probe cadence rather than clock-read cadence, so losing NTP takes the
                 // figure away within the minute instead of up to ClockInterval later.
                 return _cached = new SpProSnapshot(DateTimeOffset.Now, live, _clock, null, unit,
                                                    Drift(host, _clockDriftSeconds), _clockReadAt, host,
-                                                   _today, _todayReadAt, _blocks, _blocksReadAt);
+                                                   _today, _todayReadAt, _blocks, _blocksReadAt,
+                                                   _logs, _logsCheckedAt);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -126,13 +147,29 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
                 return _cached = new SpProSnapshot(DateTimeOffset.Now, _cached?.Live, _cached?.InverterClock,
                                                    ex.Message, _cached?.Unit, Drift(host, _cached?.ClockDriftSeconds),
                                                    _cached?.ClockReadAt, host, _cached?.Today, _cached?.TodayReadAt,
-                                                   _cached?.Blocks, _cached?.BlocksReadAt);
+                                                   _cached?.Blocks, _cached?.BlocksReadAt,
+                                                   _cached?.Logs, _cached?.LogsCheckedAt);
             }
         }
         finally
         {
             _gate.Release();
         }
+    }
+
+    /// <summary>
+    /// Keeps the most recent non-empty record list for each log. A poll that found nothing new
+    /// reports zero records, which is correct for that poll but would otherwise erase what the
+    /// previous one found before a consumer had seen it.
+    /// </summary>
+    private static IReadOnlyList<SpProLogUpdate> Merge(
+        IReadOnlyList<SpProLogUpdate>? previous, IReadOnlyList<SpProLogUpdate> latest)
+    {
+        if (previous is null) return latest;
+        var carried = previous.ToDictionary(u => u.Type);
+        return [.. latest.Select(u => u.Count > 0 || !carried.TryGetValue(u.Type, out var old)
+                                      ? u
+                                      : u with { Records = old.Records, CapturedAt = old.CapturedAt })];
     }
 
     /// <summary>

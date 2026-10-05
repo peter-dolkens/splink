@@ -353,6 +353,28 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
             source_disconnect = s.Live.SourceDisconnectStatus,
         },
 
+        // Logged records, captured incrementally. Each log's write pointer is watched cheaply and
+        // records are paged only when it moves, so what polling cannot see — discrete events,
+        // per-window extremes, and whatever happened while the bridge was down — is not lost to
+        // the circular buffer wrapping.
+        logs_checked_at = s.LogsCheckedAt,
+        logs = s.Logs?.ToDictionary(
+            u => u.Type.ToString(),
+            u => (object)new
+            {
+                entries = u.EntryCount,
+                current_address = u.CurrentAddress,
+                // Count and timestamp of the batch below, which is carried between checks.
+                captured_count = u.Count,
+                captured_at = u.CapturedAt == DateTimeOffset.MinValue ? (DateTimeOffset?)null : u.CapturedAt,
+                records = u.Records.Select(r => new
+                {
+                    timestamp = r.Timestamp,
+                    address = r.Address,
+                    fields = r.Fields.ToDictionary(f => f.Name, f => (object?)f.Value),
+                }).ToArray(),
+            }),
+
         // Every register block SP LINK displays, swept on a slow cadence. Fields whose converter
         // has not been transcribed still appear, carrying their raw words and the converter's
         // name, so nothing the inverter exposes is silently dropped.
