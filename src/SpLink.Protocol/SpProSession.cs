@@ -5,7 +5,8 @@ namespace SpLink.Protocol;
 public sealed record SpProSnapshot(
     DateTimeOffset TakenAt, SpProLiveReading? Live, DateTime? InverterClock, string? Error,
     SpProUnitInfo? Unit = null, double? ClockDriftSeconds = null, DateTimeOffset? ClockReadAt = null,
-    HostClockStatus? HostClock = null, SpProTodayReading? Today = null, DateTimeOffset? TodayReadAt = null)
+    HostClockStatus? HostClock = null, SpProTodayReading? Today = null, DateTimeOffset? TodayReadAt = null,
+    IReadOnlyList<SpProBlockReading>? Blocks = null, DateTimeOffset? BlocksReadAt = null)
 {
     public bool Healthy => Error is null && Live is not null;
 }
@@ -32,6 +33,8 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
     private readonly HostClockProbe _hostClock = new();
     private SpProTodayReading? _today;
     private DateTimeOffset _todayReadAt = DateTimeOffset.MinValue;
+    private IReadOnlyList<SpProBlockReading>? _blocks;
+    private DateTimeOffset _blocksReadAt = DateTimeOffset.MinValue;
 
     /// <summary>How long a reading may be reused, so a burst of requests does not re-read the inverter.</summary>
     public TimeSpan CacheFor { get; set; } = TimeSpan.FromSeconds(2);
@@ -52,6 +55,12 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
     /// off the link.
     /// </summary>
     public TimeSpan TodayInterval { get; set; } = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// How often to sweep every display block. That is nine round trips, so it runs rarely:
+    /// the blocks are mostly accumulators and configuration-shaped values that barely move.
+    /// </summary>
+    public TimeSpan BlockSweepInterval { get; set; } = TimeSpan.FromMinutes(15);
 
     public Action<string>? Log { get; set; }
 
@@ -93,11 +102,17 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
                     _todayReadAt = DateTimeOffset.Now;
                 }
 
+                if (_blocks is null || DateTimeOffset.Now - _blocksReadAt >= BlockSweepInterval)
+                {
+                    _blocks = await client.ReadAllBlocksAsync(cancellationToken).ConfigureAwait(false);
+                    _blocksReadAt = DateTimeOffset.Now;
+                }
+
                 // Re-check at probe cadence rather than clock-read cadence, so losing NTP takes the
                 // figure away within the minute instead of up to ClockInterval later.
                 return _cached = new SpProSnapshot(DateTimeOffset.Now, live, _clock, null, unit,
                                                    Drift(host, _clockDriftSeconds), _clockReadAt, host,
-                                                   _today, _todayReadAt);
+                                                   _today, _todayReadAt, _blocks, _blocksReadAt);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -110,7 +125,8 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
                 await CloseAsync().ConfigureAwait(false);
                 return _cached = new SpProSnapshot(DateTimeOffset.Now, _cached?.Live, _cached?.InverterClock,
                                                    ex.Message, _cached?.Unit, Drift(host, _cached?.ClockDriftSeconds),
-                                                   _cached?.ClockReadAt, host, _cached?.Today, _cached?.TodayReadAt);
+                                                   _cached?.ClockReadAt, host, _cached?.Today, _cached?.TodayReadAt,
+                                                   _cached?.Blocks, _cached?.BlocksReadAt);
             }
         }
         finally

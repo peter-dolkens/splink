@@ -327,6 +327,29 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
             source_disconnect = s.Live.SourceDisconnectStatus,
         },
 
+        // Every register block SP LINK displays, swept on a slow cadence. Fields whose converter
+        // has not been transcribed still appear, carrying their raw words and the converter's
+        // name, so nothing the inverter exposes is silently dropped.
+        blocks_read_at = s.BlocksReadAt,
+        blocks = s.Blocks?.ToDictionary(
+            b => b.Name,
+            b => (object)new
+            {
+                address = b.Address,
+                words = b.RawWords.Length,
+                fields = b.Fields.ToDictionary(
+                    f => f.Name,
+                    f => (object)new
+                    {
+                        value = f.Value,
+                        unit = f.Unit,
+                        raw = f.Raw,
+                        at = f.Words,
+                        converter = f.Decoded ? null : f.Converter,
+                    }),
+                raw = b.RawWords,
+            }),
+
         // Energy accumulators, read on a slower cadence than live data.
         today_read_at = s.TodayReadAt,
         today = s.Today is null ? null : new

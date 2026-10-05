@@ -147,6 +147,31 @@ public sealed class SpProClient(ISpProTransport transport, bool allowWrites = fa
         return SpProTodayData.Decode(words, scale, version);
     }
 
+    /// <summary>
+    /// Reads and decodes every register block SP LINK displays. One round trip per block, so this
+    /// is for a slow cadence rather than live polling.
+    /// </summary>
+    public async Task<IReadOnlyList<SpProBlockReading>> ReadAllBlocksAsync(CancellationToken cancellationToken = default)
+    {
+        var scale = await ReadScaleFactorsAsync(cancellationToken).ConfigureAwait(false);
+        var readings = new List<SpProBlockReading>(SpProDisplayBlocks.All.Length);
+        foreach (var block in SpProDisplayBlocks.All)
+        {
+            ushort[] words;
+            try
+            {
+                words = await ReadWordsAsync(block.Address, block.WordCount, cancellationToken).ConfigureAwait(false);
+            }
+            catch (SpProException)
+            {
+                // A block the unit does not implement must not take the whole sweep down.
+                continue;
+            }
+            readings.Add(SpProDisplayDecoder.Decode(block, words, scale));
+        }
+        return readings;
+    }
+
     /// <summary>Access to the logged performance data (read-only).</summary>
     public SpProLogReader Logs => _logs ??= new SpProLogReader(this);
 
