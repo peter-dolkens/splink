@@ -29,6 +29,7 @@ import os
 import re
 import signal
 import sys
+import threading
 import time
 import urllib.request
 
@@ -38,7 +39,11 @@ CONF = os.environ.get("MQTT_ENV", "/etc/splink/mqtt.env")
 CONFIG = os.environ.get("MQTT_CONFIG", "/etc/splink/publisher.json")
 # The bridge omits the block sweep unless asked, since it is most of the payload and the public
 # feed rarely wants it. The block sensors depend on it, so request it explicitly.
-BRIDGE = os.environ.get("BRIDGE_URL", "http://localhost:8080/?blocks=true")
+# Asked for without the block sweep by default. The bridge only re-reads the blocks from the
+# inverter on its own timer, so requesting them on every poll costs no inverter traffic -- but
+# it does serialise and parse 102 KB instead of 4.5 KB each time, to use it once every fifteen
+# minutes. The query is added only on the polls that will actually publish them.
+BRIDGE = os.environ.get("BRIDGE_URL", "http://localhost:8080/").split("?")[0]
 INTERVAL = int(os.environ.get("INTERVAL", "60"))
 # Republish even when unchanged this often, so retained values stay fresh.
 FORCE_EVERY = int(os.environ.get("FORCE_EVERY", "900"))
@@ -94,6 +99,34 @@ INVERTER = CFG["inverter_name"]
 EPREFIX = CFG["entity_prefix"]
 BUCKETS = CFG["buckets"]
 SPPRO_BASE = f"{PREFIX}/selectronic/{INVERTER}"
+
+# The bridge reads a 14-register window off the inverter far more often than it reads the
+# 85-word live block, so a handful of readings can be published seconds after they change
+# rather than at the main poll interval. That matters for load shedding: the SP PRO can
+# sustain a large overload only briefly, so Home Assistant needs to see the spike while there
+# is still time to act on it.
+#
+# These are not new entities. Each already exists on a slower topic, and moving it here keeps
+# its unique_id, so Home Assistant reuses the registry entry and the history carries over.
+# Only the fields the fast window actually covers are listed -- anything else would have to be
+# read from the live block and would gain nothing.
+#
+# short name -> field in the /fast payload. Units match the slow path's, so the sensor's
+# existing multiplier and precision still apply.
+FAST_FIELDS = {
+    "ac_load_power": "ac_load_kilowatts",
+    "inverter_power": "inverter_kilowatts",
+    "battery_soc": "battery_soc_percent",
+    "battery_current": "battery_amps",
+    "dc_current": "dc_amps",
+    "charger_state": "charger",
+    "inverter_mode": "inverter_mode",
+    "ac_source_status": "ac_source_status",
+}
+# Opt-in: without a state_fast bucket the fast loop never starts and every sensor above stays
+# on the topic it is on today.
+FAST_BUCKET = "state_fast"
+FAST_INTERVAL = BUCKETS.get(FAST_BUCKET) or 0
 
 
 def excluded(object_id):
@@ -309,6 +342,10 @@ def build_entities(snapshot):
 
     for short, name, path, unit, dclass, sclass, icon, prec, bucket, mult in SPPRO_SENSORS:
         obj = f"{EPREFIX}_{short}" if EPREFIX else short
+        if FAST_INTERVAL and short in FAST_FIELDS:
+            # The fast window carries this one, so it reads from there instead. The payload is
+            # flat, so the path is just the field name.
+            bucket, path = FAST_BUCKET, FAST_FIELDS[short]
         if excluded(obj) or bucket not in routes:
             continue
         topic = f"{SPPRO_BASE}/{bucket}"
@@ -460,6 +497,48 @@ def publish_if_due(client, topic, payload, bucket, force):
     return 1
 
 
+def publish_fast(client, routes, force):
+    """One poll of the bridge's fast window, published to its own topic.
+
+    Runs on its own thread so its cadence is independent of the main loop: a slow block sweep
+    on the main poll must not delay a load spike. The bridge serialises its own inverter
+    access, so this cannot collide with the main read -- it waits instead.
+    """
+    req = urllib.request.Request(BRIDGE.rstrip("/") + "/fast",
+                                 headers={"User-Agent": "solar-bridge-mqtt-fast"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        fast = json.loads(r.read())
+    payload = {}
+    for object_id, path in routes[FAST_BUCKET]:
+        put(payload, path, quantize(object_id, fast.get(path)))
+    return publish_if_due(client, f"{SPPRO_BASE}/{FAST_BUCKET}",
+                          json.dumps(payload, sort_keys=True), FAST_BUCKET, force)
+
+
+def fast_loop(client, state):
+    """Poll the fast window until shutdown, once the entity set exists."""
+    last_forced, fails = 0.0, 0
+    while running:
+        routes = state["routes"]
+        if routes and routes.get(FAST_BUCKET):
+            try:
+                force = time.time() - last_forced >= FORCE_EVERY
+                if force:
+                    last_forced = time.time()
+                publish_fast(client, routes, force)
+                if fails:
+                    print(f"fast path recovered after {fails} failures", flush=True)
+                    fails = 0
+            except Exception as e:
+                fails += 1
+                # The main loop owns the availability topic. A fast-path failure alone does not
+                # mean the bridge is down, and marking everything offline over it would be worse
+                # than briefly stale load figures.
+                if fails in (1, 10) or fails % 100 == 0:
+                    print(f"fast read failed ({fails}): {e}", file=sys.stderr, flush=True)
+        time.sleep(FAST_INTERVAL)
+
+
 def retire_stale_discovery(client, keep):
     """Clear retained discovery configs we no longer publish.
 
@@ -546,11 +625,23 @@ def main():
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
 
+    if FAST_INTERVAL:
+        threading.Thread(target=fast_loop, args=(client, state), daemon=True).start()
+        print(f"fast path: {len(FAST_FIELDS)} readings every {FAST_INTERVAL}s "
+              f"on {SPPRO_BASE}/{FAST_BUCKET}", flush=True)
+
     fails = published = skipped = 0
     last_report = time.time()
     while running:
         try:
-            req = urllib.request.Request(BRIDGE, headers={"User-Agent": "solar-bridge-mqtt"})
+            # Blocks are needed on the first poll, to build the entity set, and thereafter only
+            # when the blocks bucket is due to publish.
+            blocks_topic = f"{SPPRO_BASE}/blocks"
+            want_blocks = (state["routes"] is None
+                           or time.time() - _last_published.get(blocks_topic, 0)
+                           >= BUCKETS.get("blocks", 0))
+            url = BRIDGE + ("?blocks=true" if want_blocks else "")
+            req = urllib.request.Request(url, headers={"User-Agent": "solar-bridge-mqtt"})
             with urllib.request.urlopen(req, timeout=90) as r:
                 snap = json.loads(r.read())
             sp = snap.get("sp_pro") or {}
@@ -580,6 +671,13 @@ def main():
                 blocks_flat = flatten_blocks(sp)
                 for bucket in BUCKETS:
                     if not state["routes"][bucket]:
+                        continue
+                    if bucket == FAST_BUCKET:
+                        # Owned by the fast thread, and its fields are not in this snapshot --
+                        # publishing it from here would write nulls over good values.
+                        continue
+                    if bucket == "blocks" and not want_blocks:
+                        # Publishing from an absent sweep would overwrite good values with nulls.
                         continue
                     topics += 1
                     payload = bucket_payload(sp, blocks_flat, state["routes"], bucket)

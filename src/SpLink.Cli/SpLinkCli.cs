@@ -23,9 +23,12 @@ internal static class SpLinkCli
                                           Dump a raw register block (decimal or 0x hex). Read-only.
           splink download <connection> --log <name> [--limit <n>] [--raw]
                                                   Download logged records (newest first). --log: alerts|events|daily|detailed
-          splink serve <connection> [--http-port <n>] [--interval <s>]
+          splink serve <connection> [--http-port <n>]
                                      [--config <file>] [--fronius name=host,...]
-                                     [--idle-timeout <s>] [--cache <s>]
+                                     [--idle-timeout <s>] [--cache <s>] [--allow-raw]
+                                     [--live-interval <s>] [--today-interval <s>]
+                                     [--clock-interval <s>] [--sweep-interval <s>]
+                                     [--log-interval <s>] [--fast-cache <s>]
                                                   Serve a read-only JSON API + /metrics. Everything is read
                                                   ON DEMAND: no inverter traffic until a request arrives.
                                                   Also proxies any configured Fronius inverters' Solar API.
@@ -290,10 +293,41 @@ internal static class SpLinkCli
         {
             Log = line => Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {line}"),
         };
-        if (options.Get("idle-timeout") is string it)
-            session.IdleTimeout = TimeSpan.FromSeconds(double.Parse(it, CultureInfo.InvariantCulture));
-        if (options.Get("cache") is string ca)
-            session.CacheFor = TimeSpan.FromSeconds(double.Parse(ca, CultureInfo.InvariantCulture));
+        // An unrecognised flag used to be accepted and ignored, which meant a mistyped option --
+        // or one the usage text advertised but nothing consumed -- looked like it had taken
+        // effect. Fail loudly instead. Covers the transport and trace options serve reaches
+        // through as well as its own.
+        string[] known = [
+            // transport
+            "port", "baud", "host", "tcp-port", "timeout", "simulate",
+            "select-live", "serial", "sl-user", "sl-password", "sl-host", "sl-port", "password",
+            // serve
+            "http-port", "config", "fronius", "allow-raw", "idle-timeout", "cache",
+            "live-interval", "today-interval", "clock-interval", "sweep-interval",
+            "log-interval", "fast-cache",
+            // general
+            "verbose", "help", "h",
+        ];
+        foreach (var flag in options.Flags.Keys)
+            if (!known.Contains(flag, StringComparer.OrdinalIgnoreCase))
+                throw new UsageException($"serve: unknown option --{flag}");
+
+        void Seconds(string name, Action<TimeSpan> apply)
+        {
+            if (options.Get(name) is not string raw) return;
+            if (!double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out var s) || s < 0)
+                throw new UsageException($"serve: --{name} expects a non-negative number of seconds, got '{raw}'");
+            apply(TimeSpan.FromSeconds(s));
+        }
+
+        Seconds("idle-timeout", v => session.IdleTimeout = v);
+        Seconds("cache", v => session.CacheFor = v);
+        Seconds("live-interval", v => session.LiveInterval = v);
+        Seconds("today-interval", v => session.TodayInterval = v);
+        Seconds("clock-interval", v => session.ClockInterval = v);
+        Seconds("sweep-interval", v => session.BlockSweepInterval = v);
+        Seconds("log-interval", v => session.LogCheckInterval = v);
+        Seconds("fast-cache", v => session.FastCacheFor = v);
 
         IReadOnlyList<FroniusInverterConfig> inverters = [];
         if (options.Get("fronius") is string inline) inverters = BridgeConfig.ParseInline(inline);

@@ -305,3 +305,62 @@ public class RoundingTests
     [Fact]
     public void A_null_reading_stays_null() => Assert.Null(SpProScaling.Round(null, 2));
 }
+
+public class FastReadTests
+{
+    private static readonly SpProScaleFactors Scale =
+        SpProScaleFactors.FromWords([5300, 2934, 1050, 16000, 530, 180]);
+
+    private static Dictionary<int, ushort> Words() => new()
+    {
+        [0] = 233, [1] = 0,          // inverter AC power, 32-bit
+        [34] = 0, [35] = 0,          // AC load power, 32-bit
+        [36] = 4,                    // charger: Return to Float
+        [37] = 2,                    // inverter mode: On
+        [40] = 0,                    // AC source: not present
+        [41] = 25600,                // SoC 100%
+        [43] = 65521,                // DC current, signed -15
+        [44] = 14, [45] = 0,         // battery current, 32-bit
+    };
+
+    [Fact]
+    public void Covers_every_word_the_fast_windows_read()
+    {
+        // The windows and the decoder have to agree, or a field silently throws at runtime.
+        var covered = SpProRegisters.FastWindows
+            .SelectMany(w => Enumerable.Range(w.Offset, w.Count)).ToHashSet();
+        foreach (var needed in new[] { 0, 1, 34, 35, 36, 37, 40, 41, 43, 44, 45 })
+            Assert.Contains(needed, covered);
+    }
+
+    [Fact]
+    public void Reads_far_fewer_registers_than_the_whole_block()
+    {
+        var registers = SpProRegisters.FastWindows.Sum(w => w.Count);
+        Assert.Equal(14, registers);
+        Assert.True(registers * 6 < SpProRegisters.NowBlockWordCount,
+                    "the fast path should be at least six times cheaper, or it is not worth having");
+    }
+
+    [Fact]
+    public void Decodes_the_same_values_the_full_block_would()
+    {
+        var fast = SpProFastData.Decode(Words(), Scale);
+        Assert.Equal(0.138, fast.InverterAcKilowatts, 3);
+        Assert.Equal(0.0, fast.AcLoadKilowatts, 3);
+        Assert.Equal("Return to Float", fast.ChargerState);
+        Assert.Equal("On", fast.InverterMode);
+        Assert.Equal("AC Source Not Present", fast.AcSourceStatus);
+        Assert.Equal(100.0, fast.BatterySoCPercent!.Value, 3);
+        Assert.Equal(0.68, fast.BatteryAmps, 2);
+        Assert.Equal(-0.73, fast.DcAmps, 2);
+    }
+
+    [Fact]
+    public void A_missing_word_is_an_error_rather_than_a_wrong_number()
+    {
+        var words = Words();
+        words.Remove(34);
+        Assert.Throws<SpProProtocolException>(() => SpProFastData.Decode(words, Scale));
+    }
+}

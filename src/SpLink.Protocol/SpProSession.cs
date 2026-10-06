@@ -7,7 +7,8 @@ public sealed record SpProSnapshot(
     SpProUnitInfo? Unit = null, double? ClockDriftSeconds = null, DateTimeOffset? ClockReadAt = null,
     HostClockStatus? HostClock = null, SpProTodayReading? Today = null, DateTimeOffset? TodayReadAt = null,
     IReadOnlyList<SpProBlockReading>? Blocks = null, DateTimeOffset? BlocksReadAt = null,
-    IReadOnlyList<SpProLogUpdate>? Logs = null, DateTimeOffset? LogsCheckedAt = null)
+    IReadOnlyList<SpProLogUpdate>? Logs = null, DateTimeOffset? LogsCheckedAt = null,
+    DateTimeOffset? LiveReadAt = null)
 {
     public bool Healthy => Error is null && Live is not null;
 }
@@ -36,12 +37,27 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
     private DateTimeOffset _todayReadAt = DateTimeOffset.MinValue;
     private IReadOnlyList<SpProBlockReading>? _blocks;
     private DateTimeOffset _blocksReadAt = DateTimeOffset.MinValue;
+    private SpProFastReading? _fast;
+    private SpProLiveReading? _live;
+    private DateTimeOffset _liveReadAt = DateTimeOffset.MinValue;
     private SpProLogWatcher? _logWatcher;
     private IReadOnlyList<SpProLogUpdate>? _logs;
     private DateTimeOffset _logsCheckedAt = DateTimeOffset.MinValue;
 
     /// <summary>How long a reading may be reused, so a burst of requests does not re-read the inverter.</summary>
     public TimeSpan CacheFor { get; set; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// How often to re-read the 85-word live block. Zero reads it whenever the snapshot cache
+    /// has expired, which is the historical behaviour.
+    /// <para>
+    /// Setting this decouples the live block from the request rate, which matters once a fast
+    /// path exists: the handful of registers a shedding decision needs can then be polled every
+    /// few seconds while the rest of the live data, which moves far more slowly, is read on its
+    /// own schedule rather than dragged along.
+    /// </para>
+    /// </summary>
+    public TimeSpan LiveInterval { get; set; } = TimeSpan.Zero;
 
     /// <summary>Quiet period after which the serial link is closed and the port released.</summary>
     public TimeSpan IdleTimeout { get; set; } = TimeSpan.FromSeconds(60);
@@ -77,6 +93,38 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
     /// <summary>True while the serial link is held open.</summary>
     public bool Connected => _client is not null;
 
+    /// <summary>
+    /// How long a fast reading may be reused. Short, because the whole point is freshness, but
+    /// non-zero so several consumers asking at once do not each cost a round trip.
+    /// </summary>
+    public TimeSpan FastCacheFor { get; set; } = TimeSpan.FromMilliseconds(500);
+
+    /// <summary>
+    /// Reads only the shedding-relevant words. Shares the session gate with everything else, so
+    /// a fast poll and a block sweep cannot interleave on the wire.
+    /// </summary>
+    public async Task<SpProFastReading?> ReadFastAsync(CancellationToken cancellationToken = default)
+    {
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            _lastUsed = DateTimeOffset.Now;
+            if (_fast is { } cached && DateTimeOffset.Now - cached.TakenAt < FastCacheFor) return cached;
+            var client = await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
+            return _fast = await client.ReadFastAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Log?.Invoke($"fast read failed: {ex.Message}");
+            await CloseAsync().ConfigureAwait(false);
+            return null;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
     /// <summary>Reads live data, connecting first if necessary. Never throws; failures land in the snapshot.</summary>
     public async Task<SpProSnapshot> ReadAsync(CancellationToken cancellationToken = default)
     {
@@ -92,7 +140,13 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
             try
             {
                 var client = await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
-                var live = await client.ReadLiveAsync(cancellationToken).ConfigureAwait(false);
+                if (_live is null || LiveInterval <= TimeSpan.Zero
+                    || DateTimeOffset.Now - _liveReadAt >= LiveInterval)
+                {
+                    _live = await client.ReadLiveAsync(cancellationToken).ConfigureAwait(false);
+                    _liveReadAt = DateTimeOffset.Now;
+                }
+                var live = _live;
                 var unit = await client.ReadUnitInfoAsync(cancellationToken).ConfigureAwait(false);
 
                 if (_clock is null || DateTimeOffset.Now - _clockReadAt >= ClockInterval)
@@ -133,7 +187,7 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
                 return _cached = new SpProSnapshot(DateTimeOffset.Now, live, _clock, null, unit,
                                                    Drift(host, _clockDriftSeconds), _clockReadAt, host,
                                                    _today, _todayReadAt, _blocks, _blocksReadAt,
-                                                   _logs, _logsCheckedAt);
+                                                   _logs, _logsCheckedAt, _liveReadAt);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -148,7 +202,7 @@ public sealed class SpProSession(Func<Task<ISpProTransport>> openTransport, stri
                                                    ex.Message, _cached?.Unit, Drift(host, _cached?.ClockDriftSeconds),
                                                    _cached?.ClockReadAt, host, _cached?.Today, _cached?.TodayReadAt,
                                                    _cached?.Blocks, _cached?.BlocksReadAt,
-                                                   _cached?.Logs, _cached?.LogsCheckedAt);
+                                                   _cached?.Logs, _cached?.LogsCheckedAt, _liveReadAt);
             }
         }
         finally

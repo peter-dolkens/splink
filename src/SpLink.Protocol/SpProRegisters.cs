@@ -30,6 +30,18 @@ public static class SpProRegisters
     public const uint NowBlock = 41048;
     public const int NowBlockWordCount = 85;
 
+    /// <summary>
+    /// The slices of the "Now" block that carry everything a load-shedding decision needs, so a
+    /// fast path does not have to pull all 85 words.
+    /// <para>
+    /// Words 34-45 are a single run holding AC load power, charger and inverter status, AC source
+    /// status, state of charge, DC current and battery current. Inverter AC power sits apart at
+    /// 0-1. Together that is 14 registers in two round trips against 85 in one — worth having
+    /// when the same reading is wanted every second rather than every twenty.
+    /// </para>
+    /// </summary>
+    public static readonly (int Offset, int Count)[] FastWindows = [(0, 2), (34, 12)];
+
     /// <summary>4 words: model, 32-bit serial number, hardware revision.</summary>
     public const uint UnitInfo = 41053;
 

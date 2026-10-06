@@ -172,6 +172,25 @@ public sealed class SpProClient(ISpProTransport transport, bool allowWrites = fa
         return readings;
     }
 
+    /// <summary>
+    /// Reads only the words a shedding decision needs: 14 registers in two round trips rather
+    /// than the whole 85-word block, so the same reading can be taken every second at a fraction
+    /// of the register load.
+    /// </summary>
+    public async Task<SpProFastReading> ReadFastAsync(CancellationToken cancellationToken = default)
+    {
+        var scale = await ReadScaleFactorsAsync(cancellationToken).ConfigureAwait(false);
+        var words = new Dictionary<int, ushort>();
+        foreach (var (offset, count) in SpProRegisters.FastWindows)
+        {
+            var read = await ReadWordsAsync(SpProRegisters.NowBlock + (uint)offset, count,
+                                            cancellationToken).ConfigureAwait(false);
+            for (var i = 0; i < read.Length; i++)
+                words[offset + i] = read[i];
+        }
+        return SpProFastData.Decode(words, scale);
+    }
+
     /// <summary>Access to the logged performance data (read-only).</summary>
     public SpProLogReader Logs => _logs ??= new SpProLogReader(this);
 

@@ -39,6 +39,7 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
         Console.WriteLine($"JSON API listening on port {port} (read-only) — http://localhost:{port}/");
         Console.WriteLine("  /            SP PRO live data" + (fronius is not null ? " + Fronius inverters" : ""));
         Console.WriteLine("  /sppro       SP PRO only");
+        Console.WriteLine("  /fast        shedding-relevant readings only, from a 14-register read");
         Console.WriteLine("               add ?blocks=true and/or ?logs=true for the full sweep");
         if (fronius is not null) Console.WriteLine("  /fronius     Fronius inverters only");
         Console.WriteLine("  /health      liveness");
@@ -165,6 +166,32 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
                     }
                     break;
                 }
+                case "/fast":
+                {
+                    // Just the shedding-relevant readings, from a 14-register read rather than
+                    // the full block, so this can be polled every second without the cost of a
+                    // whole snapshot.
+                    var fast = await sppro.ReadFastAsync(cancellationToken).ConfigureAwait(false);
+                    if (fast is null)
+                    {
+                        status = 503;
+                        body = JsonSerializer.Serialize(new { error = "fast read failed" }, Json);
+                        break;
+                    }
+                    body = JsonSerializer.Serialize(new
+                    {
+                        taken_at = fast.TakenAt,
+                        ac_load_kilowatts = Round(fast.AcLoadKilowatts, 3),
+                        inverter_kilowatts = Round(fast.InverterAcKilowatts, 3),
+                        battery_soc_percent = Round(fast.BatterySoCPercent, 3),
+                        battery_amps = Round(fast.BatteryAmps, 2),
+                        dc_amps = Round(fast.DcAmps, 2),
+                        charger = fast.ChargerState,
+                        inverter_mode = fast.InverterMode,
+                        ac_source_status = fast.AcSourceStatus,
+                    }, Json);
+                    break;
+                }
                 case "/health":
                 {
                     var sp = await sppro.ReadAsync(cancellationToken).ConfigureAwait(false);
@@ -270,6 +297,10 @@ internal sealed class JsonServer(SpProSession sppro, int port, FroniusService? f
     private static object DescribeSpPro(SpProSnapshot s, bool includeBlocks, bool includeLogs) => new
     {
         taken_at = s.TakenAt,
+        // When the live block was last read off the inverter, as distinct from when this
+        // snapshot was assembled. With a live interval set, the two differ, and without this
+        // there is no way to tell an unchanging reading from a stale one.
+        live_read_at = s.LiveReadAt,
         healthy = s.Healthy,
         error = s.Error,
         unit = s.Unit is null ? null : new
