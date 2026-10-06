@@ -54,6 +54,14 @@ Connect over USB/serial (`--port`, with auto-baud), an Ethernet serial adaptor
 (`--host`/`--tcp-port`), or remotely through a select.live gateway (`--select-live`).
 `--simulate` runs everything against a built-in simulated inverter, no hardware required.
 
+## Modbus
+
+The SP PRO also has a vendor-documented Modbus RTU slave interface on its Advanced
+Communication Card, which this project does not use. Its register map, scalings and timing
+requirements are written up in [docs/modbus.md](docs/modbus.md) — useful for cross-checking a
+decode, and for anyone who would rather build on a supported interface than a recovered one.
+It reaches 55 registers against the native protocol's ~945 words, 563 settings and four logs.
+
 ## Protocol notes
 
 Recovered by reverse engineering for interoperability, then verified against hardware.
