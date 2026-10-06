@@ -1,8 +1,10 @@
-# splink
+# splink-cli
 
 A cross-platform, **read-only** bridge for Selectronic SP PRO inverters, with optional
 Fronius Solar API aggregation. Speaks the SP PRO's native serial protocol directly, so it
 runs anywhere .NET runs — no Windows, no SP LINK installation.
+
+The project is `splink-cli`; the command it installs is `splink`.
 
 Built because SP LINK, the vendor's configuration and monitoring tool, is Windows-only.
 
