@@ -176,6 +176,20 @@ flags:
 They may well exist in the native register space among the words SP LINK reads but never
 labels; that is unresolved.
 
+### Applying the Modbus timing guidance to the native protocol
+
+The 10-register and 1.5 s limits are a property of the ACC's Modbus stack and the RS485 link,
+not of the device, and applying them to the native protocol would be both costly and
+counterproductive. A single 85-word live reading becomes nine transactions and 13.5 s instead
+of 20 ms; a full log backfill becomes an hour. More to the point, splitting large reads
+multiplies the transaction count ninefold, which works directly against the "reduce polling
+load" the guidance exists to achieve — Modbus RTU spends 8 bytes of framing per transaction
+whatever the payload, so ten registers at a time is mostly overhead.
+
+The useful part of the guidance is the implied data rate: 10 registers per 1.5 s, about 6.7
+registers a second. That is a reasonable budget to hold a native-protocol implementation to as
+well, and it is worth measuring against rather than assuming.
+
 Going the other way, the native protocol reaches a great deal the Modbus map does not: all 563
 configuration settings, the four on-device logs, and roughly 945 words across fifteen display
 blocks. So Modbus is the better-supported interface and the smaller one.
