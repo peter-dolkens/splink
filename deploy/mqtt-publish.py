@@ -194,6 +194,11 @@ SPPRO_SENSORS = [
     ("today_ac_coupled_peak", "Solar Peak Today", "today.ac_coupled_peak_kilowatts", "W", "power", "measurement", None, 0, "state_300s", 1000),
     ("today_inverter_run_hours", "Inverter Run Hours Today", "today.inverter_run_hours", "h", "duration", "total_increasing", None, 2, "state_300s", 1),
     ("today_float_hours", "Float Hours Today", "today.float_hours", "h", "duration", "total_increasing", None, 2, "state_300s", 1),
+
+    # Lifetime run hours, promoted out of the block sweep so it carries a name worth reading.
+    # One counter per inverter is enough to show it has not been down: it rises with wall-clock
+    # time while the inverter is up, so a stall against elapsed time is the gap.
+    ("inverter_hours", "Inverter Hours", "Technical.InverterRunHrsTotalAcc", "h", "duration", "total_increasing", None, 2, "blocks", 1),
 ]
 
 FRONIUS_SENSORS = [
@@ -554,11 +559,15 @@ def main():
             if state["routes"] is None and sp:
                 discovery, routes = build_entities(snap)
                 state["discovery"], state["routes"] = discovery, routes
-                if not state["retired"]:
-                    retire_stale_discovery(client, {t for t, _ in discovery})
-                    state["retired"] = True
                 for topic, cfg in discovery:
                     client.publish(topic, json.dumps(cfg), retain=True)
+                if not state["retired"]:
+                    # After announcing, not before: the scan then sees a settled broker that
+                    # already holds everything we intend to keep, so whatever is left over is
+                    # unambiguously stale. Scanning first raced our own publishes and once left
+                    # a retired entity alive.
+                    retire_stale_discovery(client, {t for t, _ in discovery})
+                    state["retired"] = True
                 counts = ", ".join(f"{b}={len(v)}" for b, v in routes.items())
                 print(f"announced {len(discovery)} entities ({counts})", flush=True)
 
