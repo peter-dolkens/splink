@@ -54,7 +54,12 @@
     "*_dc_current_kaco*",
     "*_temperature_kaco*",
     "*_ac_power_kaco*",
-    "sp_pro_networkpower_*"
+    "sp_pro_networkpower_*",
+    "sp_pro_export_power_limit",
+    "sp_pro_today_float_hours",
+    "sp_pro_ac_coupled_percent",
+    "*_ac_export*",
+    "*_today_ac_energy_kaco*"
   ],
   "_exclude_rationale": {
     "bms_*, bmsmodules_*": "42 entities. TechBmsModel reads None and both BMS blocks are entirely zero; no BMS is wired to this unit.",
@@ -63,8 +68,12 @@
     "*_kaco3/4/5": "33 entities. KacoModel3/4/5 read None -- only two AC-coupled inverters are present (both Primo GEN24 10.0).",
     "networkpower_*": "1 entity. No network power meter: the register SP LINK tests for one reads zero.",
     "*_energy_today_kaco*, *_ac_volts_kaco*, *_ac_current_kaco*, *_dc_*_kaco*, *_temperature_kaco*": "14 entities. The SP PRO only polls AC power from a managed AC-coupled inverter over its Modbus RTU link, so only AcPower and AcPowerPeak are populated for any slot. The volts, current, DC and temperature fields exist for KACO-brand inverters, which report more over Selectronic's own protocol; against a Fronius they read zero for every slot including the two that are in use.",
-    "*_ac_power_kaco*": "2 entities. Duplicates the live per-inverter AC power, but sourced from the 15-minute block sweep, so it lags and visibly disagrees with the live sensor -- 218 W against 47 W when measured. The peak tracker (*_ac_power_peak_kaco*) is kept: it is not a duplicate."
+    "*_ac_power_kaco*": "2 entities. Duplicates the live per-inverter AC power, but sourced from the 15-minute block sweep, so it lags and visibly disagrees with the live sensor -- 218 W against 47 W when measured. The peak tracker (*_ac_power_peak_kaco*) is kept: it is not a duplicate.",
+    "sp_pro_export_power_limit": "Off-grid, so there is nothing to export to. Constant 0 over 26 h of history.",
+    "sp_pro_today_float_hours": "Redundant rather than empty: it tracked Inverter Run Hours exactly (14.98 vs 14.97, identical value sets), because the system sits on float continuously. Worth knowing that if the two ever diverge, that divergence is real information about the battery not reaching float -- re-enable this if cycling behaviour becomes interesting.",
+    "sp_pro_ac_coupled_percent": "Constant 0 across 26 h, including the morning charge window when the array is least constrained, so the register appears not to be populated on this firmware. It is the field that would most directly show curtailment commanding, so re-enable it if the system ever runs genuinely unconstrained.",
+    "*_ac_export*": "14 entities. Off-grid: no export path exists. All constant 0.",
+    "*_today_ac_energy_kaco*": "2 entities. Today-block per-inverter AC-coupled energy, words 24/25, which read 0 even for the two slots that are in use."
   },
-  "quantize": {},
-  "_note": "The exclude list below suited one particular SPMC482 with no BMS, no DC shunts and two AC-coupled Fronius. Check it against your own unit before using it: the test applied was that a whole group of related readings sat at zero, never moved, and the inverter's configuration independently said the hardware was absent. A single zero reading proves nothing on its own."
+  "quantize": {}
 }

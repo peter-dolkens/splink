@@ -234,17 +234,24 @@ public static class SpProDisplayDecoder
     }
 
     /// <summary>
-    /// Power factor from real power (a 32-bit pair) and reactive power, with the lead/lag sense
-    /// SP LINK shows: the two agreeing in sign is leading.
+    /// Power factor from real power (a 32-bit pair) and reactive power, signed.
+    /// <para>
+    /// SP LINK renders this as text -- "0.822 Lagging" -- which cannot be graphed or averaged.
+    /// Metering equipment and Home Assistant's power_factor device class both use a signed
+    /// magnitude in 0..1: negative for leading (capacitive), positive for lagging (inductive).
+    /// That carries the same two facts in one number. SP LINK's rule for the sense is kept
+    /// exactly: real and reactive agreeing in sign means leading.
+    /// </para>
     /// </summary>
-    private static string PowerFactor(ushort[] r, SpProScaleFactors s)
+    private static double PowerFactor(ushort[] r, SpProScaleFactors s)
     {
         var real = s.AcKilowatts32(r[0], r[1]);
         var reactive = s.AcKilowatts16(r[2]);
         var apparent = Math.Sqrt(real * real + reactive * reactive);
-        var pf = apparent != 0 ? Math.Abs(real / apparent) : 1.0;
-        var sense = (real > 0 && reactive > 0) || (real < 0 && reactive < 0) ? "Leading" : "Lagging";
-        return SpProScaling.Round(pf, 3) == 1.0 ? "1.000" : $"{pf:0.000} {sense}";
+        if (apparent == 0) return 1.0;
+        var pf = Math.Abs(real / apparent);
+        var leading = (real > 0 && reactive > 0) || (real < 0 && reactive < 0);
+        return SpProScaling.Round(leading ? -pf : pf, 3);
     }
 
     /// <summary>LG serials are big-endian within each word, unlike everything else here.</summary>

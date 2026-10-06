@@ -203,6 +203,41 @@ FRONIUS_SENSORS = [
     ("energy_total", "Total Energy", "energy.total_wh", "kWh", "energy", "total_increasing", 3, 0.001),
 ]
 
+# Numeric fields the decoder emits without a unit, because SP LINK's converter carries none.
+# Without a state_class Home Assistant files them as text and will not graph or average them.
+# object_id glob -> (unit, device_class, state_class)
+NUMERIC_HINTS = [
+    ("*_cpu_load", ("%", None, "measurement")),
+    ("*_now_percent_kaco", ("%", None, "measurement")),
+    ("*_days_since_*", ("d", None, "measurement")),
+    ("*_charge_index", (None, None, "measurement")),
+    ("*_inverter_power_factor", (None, "power_factor", "measurement")),
+]
+
+# Numeric, but identities rather than measurements: serial numbers, board revisions and
+# firmware versions. Averaging a serial number is meaningless, so these stay plain sensors.
+IDENTIFIER_PATTERNS = [
+    "*serial_number*", "*_rev_number", "*revision_number*",
+    "*version_number*", "*software_version*", "*_version_in_rd",
+]
+
+
+def numeric_hint(object_id, value, unit):
+    """Decide unit/device_class/state_class for a decoded block field."""
+    for pat, hint in NUMERIC_HINTS:
+        if fnmatch.fnmatch(object_id, pat):
+            return hint
+    if unit:
+        dclass, sclass = _UNIT_CLASS.get(unit, (None, None))
+        return unit, dclass, sclass
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None, None, None
+    if any(fnmatch.fnmatch(object_id, pat) for pat in IDENTIFIER_PATTERNS):
+        return None, None, None
+    # Numeric with no unit and not an identity: still a measurement.
+    return None, None, "measurement"
+
+
 _UNIT_CLASS = {
     "kWh": ("energy", "total_increasing"), "kW": ("power", "measurement"),
     "W": ("power", "measurement"), "V": ("voltage", "measurement"),
@@ -309,8 +344,7 @@ def build_entities(snapshot):
             obj = obj[:60]
             if excluded(obj) or "blocks" not in routes:
                 continue
-            unit = spec.get("unit")
-            dclass, sclass = _UNIT_CLASS.get(unit, (None, None))
+            unit, dclass, sclass = numeric_hint(obj, spec.get("value"), spec.get("unit"))
             discovery.append((discovery_topic("sensor", dev_id, obj),
                               sensor_config(obj, f"{block} {field}", f"{SPPRO_BASE}/blocks",
                                             f"{block}.{field}", device, unit, dclass, sclass,
@@ -430,10 +464,23 @@ def retire_stale_discovery(client, keep):
     reuses the existing registry entry and the history survives.
     """
     stale = []
+
+    def consider(_c, _u, m):
+        # Only ever retire our own configs. The discovery prefix is shared with every other
+        # integration on the broker, and an empty payload deletes whatever it lands on, so
+        # membership is decided by our unique_id prefix appearing in the payload -- not by the
+        # topic shape, which other integrations are free to use too.
+        if not m.payload or m.topic in keep:
+            return
+        if b'"unique_id": "solarbridge_' in m.payload or b'"unique_id":"solarbridge_' in m.payload:
+            stale.append(m.topic)
+
     probe = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="solar-bridge-retire")
     probe.username_pw_set(*_credentials)
-    probe.on_message = lambda _c, _u, m: stale.append(m.topic) if m.payload and m.topic not in keep else None
-    probe.on_connect = lambda c, _u, _f, _r, _p=None: c.subscribe(f"{DISCOVERY}/+/+/config")
+    probe.on_message = consider
+    # Both the old three-level layout and the current four-level one.
+    probe.on_connect = lambda c, _u, _f, _r, _p=None: (c.subscribe(f"{DISCOVERY}/+/+/config"),
+                                                       c.subscribe(f"{DISCOVERY}/+/+/+/config"))
     try:
         probe.connect(_host, _port, 30)
         probe.loop_start()
