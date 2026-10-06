@@ -210,11 +210,16 @@ public static class SpProDisplayDecoder
 
     private static object Round(double value, int digits) => SpProScaling.Round(value, digits);
 
-    /// <summary>Lists the module positions whose bit is <em>clear</em>, which is how SP LINK reads it.</summary>
+    /// <summary>
+    /// Lists the module positions whose bit is <em>clear</em>, which is how SP LINK reads it.
+    /// All bits set means nothing is flagged, which SP LINK renders as an empty box; an empty
+    /// string is not a usable state downstream, so say so explicitly instead.
+    /// </summary>
     private static string ModStatus(ushort value)
     {
-        var present = Enumerable.Range(0, 16).Where(i => (value & (1 << i)) == 0).Select(i => i + 1);
-        return string.Join(", ", present);
+        var flagged = Enumerable.Range(0, 16).Where(i => (value & (1 << i)) == 0).Select(i => i + 1);
+        var text = string.Join(", ", flagged);
+        return text.Length > 0 ? text : "-";
     }
 
     private static string StringInverterSupport(ushort sis)
