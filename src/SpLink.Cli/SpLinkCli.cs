@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Globalization;
 using SpLink.Protocol;
 using SpLink.Protocol.Simulation;
@@ -60,12 +61,24 @@ internal static class SpLinkCli
         """;
 
     private static readonly HashSet<string> BooleanFlags = new(StringComparer.OrdinalIgnoreCase)
-        { "now", "verbose", "simulate", "select-live", "allow-writes", "allow-raw", "json", "all", "raw", "help", "h" };
+        { "now", "verbose", "simulate", "select-live", "allow-writes", "allow-raw", "json", "all", "raw", "help", "h", "version" };
+
+    private static string VersionString =>
+        typeof(SpLinkCli).Assembly
+            .GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()?.InformationalVersion
+            .Split('+')[0] ?? "unknown";
 
     private static async Task<int> Main(string[] args)
     {
         LoadDotEnv();
         var options = Parse(args);
+        // Packaging needs a way to confirm which build is installed, and every package manager
+        // expects --version to work without touching hardware.
+        if (options.Has("version") || options.Positional is ["version"])
+        {
+            Console.WriteLine(VersionString);
+            return 0;
+        }
         if (options.Has("help") || options.Has("h") || options.Positional.Count == 0)
         {
             Console.WriteLine(Usage);

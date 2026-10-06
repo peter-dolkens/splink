@@ -1,0 +1,45 @@
+name: release
+
+# Tag-driven: the tag is the only place a version number is written by hand, and everything
+# downstream (the binaries, the checksums, and later the package manifests) is derived from it.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Test before publishing anything
+        run: dotnet test -c Release --nologo
+
+      - name: Publish each runtime
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p dist
+          # Self-contained, so no .NET runtime is needed on the target and no package has to
+          # depend on one. All four cross-publish from this one runner: nothing here is
+          # AOT-compiled, so no native toolchain per target is required.
+          for rid in linux-arm64 linux-x64 osx-arm64 osx-x64; do
+            out="out/$rid"
+            dotnet publish src/SpLink.Cli -c Release -r "$rid" \
+              --self-contained true -p:Version="$version" -o "$out" --nologo
+            rm -f "$out"/*.pdb
+            tar -C "$out" -czf "dist/splink-$version-$rid.tar.gz" .
+          done
+          cd dist && sha256sum *.tar.gz > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --verify-tag

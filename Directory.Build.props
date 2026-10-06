@@ -1,0 +1,14 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- Overridden by the release workflow with the git tag: -p:Version=1.2.3. The default
+         marks anything built outside that path as not a release, so a hand-built binary can
+         never be mistaken for a published one. -->
+    <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
+    <Authors>Peter Dolkens</Authors>
+    <Product>splink-cli</Product>
+    <RepositoryUrl>https://github.com/peter-dolkens/splink-cli</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+</Project>
