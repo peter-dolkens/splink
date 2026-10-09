@@ -17,7 +17,7 @@ internal static class SpLinkCli
           splink sites --select-live ...          List the SP PROs visible to your select.live account
           splink probe <connection>               Connect, log in and report link details and clock drift
           splink now <connection> [--watch <s>]   Live data: battery SoC, voltage, current, AC load, charger state
-          splink config <connection> [--json] [--all]
+          splink config <connection> [--json] [--all] [--service]
                                                   Read the inverter's configuration (read-only; no write support)
           splink logs <connection>                What logged data the inverter holds (sizes, counts, versions)
           splink read <connection> <addr> <words>
@@ -61,7 +61,7 @@ internal static class SpLinkCli
         """;
 
     private static readonly HashSet<string> BooleanFlags = new(StringComparer.OrdinalIgnoreCase)
-        { "now", "verbose", "simulate", "select-live", "allow-writes", "allow-raw", "json", "all", "raw", "help", "h", "version" };
+        { "now", "verbose", "simulate", "select-live", "allow-writes", "allow-raw", "json", "all", "raw", "help", "h", "version", "service" };
 
     private static string VersionString =>
         typeof(SpLinkCli).Assembly
@@ -263,6 +263,12 @@ internal static class SpLinkCli
         try
         {
             var config = await client.ReadConfigurationAsync(ct);
+            // Service Settings sit outside the four configuration blocks, in their own register
+            // block, so they need a separate read. Opt-in: it is an extra 127-word transaction and
+            // most uses of this command do not want it.
+            var service = options.Has("service")
+                ? await SpProServiceSettings.ReadAsync(client, ct)
+                : [];
             if (config.Unit is { } u && !options.Has("json"))
                 Console.WriteLine($"SP PRO {u.Model} ({u.ModelDescription}), serial {u.SerialNumber}, hardware rev {u.HardwareRevision}, {u.BatteryCellCount} battery cells");
             var shown = options.Has("all") ? config.Settings : config.Settings.Where(s => s.IsDecoded).ToList();
@@ -270,7 +276,14 @@ internal static class SpLinkCli
             if (options.Has("json"))
             {
                 Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(
-                    shown.Select(s => new { block = s.Block.ToString(), index = s.Index, name = s.Name, converter = s.Converter, raw = s.Raw, decoded = s.Decoded }),
+                    new
+                    {
+                        settings = shown.Select(s => new { block = s.Block.ToString(), index = s.Index, name = s.Name, converter = s.Converter, raw = s.Raw, decoded = s.Decoded }),
+                        // Raw only, deliberately: the map names these but does not say how SP LINK
+                        // scales them, and a guessed scaling on a grid-protection value is worse
+                        // than a raw count.
+                        service_settings = service.Select(s => new { address = s.Address, name = s.Name, raw = s.Raw }),
+                    },
                     new System.Text.Json.JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never }));
                 return 0;
             }
@@ -283,11 +296,21 @@ internal static class SpLinkCli
                     Console.WriteLine($"  [{s.Index,3}] {s.Name,-46} {s.Decoded ?? $"raw {s.Raw}",-18} {(s.IsDecoded ? "" : "(" + s.Converter + ")")}");
             }
 
+            if (service.Count > 0)
+            {
+                Console.WriteLine();
+                Console.WriteLine("== Service ==  (raw counts; read-only, several are grid-protection parameters)");
+                foreach (var s in service)
+                    Console.WriteLine($"  [{s.Address}] {s.Name,-46} raw {s.Raw}");
+            }
+
             var undecoded = config.Settings.Count - config.Settings.Count(s => s.IsDecoded);
             Console.WriteLine();
             Console.WriteLine($"{config.Settings.Count} settings read; {config.Settings.Count - undecoded} decoded, {undecoded} raw-only.");
             if (!options.Has("all") && undecoded > 0)
                 Console.WriteLine("Pass --all to include the raw-only settings.");
+            if (service.Count == 0)
+                Console.WriteLine("Pass --service to also read the Service Settings block.");
             return 0;
         }
         finally

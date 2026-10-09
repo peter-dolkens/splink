@@ -82,6 +82,16 @@ These are facts about the wire format, not vendor source.
 - **Analogue scaling** — raw counts times a model-specific factor over 327680. The factors
   are read from the device, not assumed.
 - **Timestamps** — seconds since **2001-01-01**, low word first.
+- **Service Settings** — SP LINK's service-level settings are not in any of the four
+  configuration blocks; they live in their own 127-word block at register **49665**, of which
+  39 words are named and the rest are spacers reading `0000` or `FFFF`. The block was located
+  and mapped by GitHub user [**mallinss**](https://github.com/peter-dolkens/splink-cli/issues/1),
+  by value-searching a SP LINK export against the register space, and is verified here on a
+  second unit two firmware revisions apart. `splink config --service` reads it. Raw counts
+  only: the names are known, the scalings are not, and several of these are grid-protection
+  parameters where a guessed scaling would be worse than a raw number. One of them,
+  `AllowPowerOverride`, gates the Modbus registers `8032`/`8033` that [the Modbus
+  reference](docs/modbus.md) lists as writable.
 - **Logged data** — four circular logs, each with its own register block. Entry size and
   sector layout are read from the device. Paging walks *backwards* from the newest record,
   wrapping between sectors. Records carry their own scale factors in trailing words.
