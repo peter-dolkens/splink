@@ -15,3 +15,12 @@ jobs:
           dotnet-version: '10.0.x'
       - run: dotnet build -c Release --nologo
       - run: dotnet test -c Release --no-build --nologo
+
+  firmware-protocol:
+    # The firmware's protocol layer is plain C with no ESP-IDF dependency, so it is tested here
+    # rather than only on a bench. It shares its wire format with the C# above; if the two ever
+    # drift, this is what catches it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make -C firmware/esp32-poe-iso/test run

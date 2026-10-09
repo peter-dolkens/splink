@@ -1,0 +1,97 @@
+menu "SP PRO bridge"
+
+config BRIDGE_INVERTER_NAME
+    string "Inverter name used in MQTT topics"
+    default "build-site"
+    help
+      Topics are solar-bridge/selectronic/<name>/... so a second inverter does not collide.
+
+config BRIDGE_ENTITY_PREFIX
+    string "Entity prefix for object_id and unique_id"
+    default "esp_sp_pro"
+    help
+      Home Assistant keys entities on unique_id, so changing this orphans their history.
+      It defaults to something distinct from the host bridge's "sp_pro" on purpose: with both
+      running you want two sets of entities to compare, not a silent fight over one set.
+      Set it to the host bridge's prefix only when this board is replacing it outright.
+
+config BRIDGE_DEVICE_ID
+    string "Home Assistant device identifier"
+    default "splink_esp32_poe"
+
+config BRIDGE_DEVICE_NAME
+    string "Home Assistant device name"
+    default "SP PRO Bridge (ESP32)"
+
+config BRIDGE_MQTT_URI
+    string "Broker URI"
+    default "mqtt://homeassistant.local:1883"
+
+config BRIDGE_MQTT_USERNAME
+    string "Broker username"
+    default ""
+
+config BRIDGE_MQTT_PASSWORD
+    string "Broker password"
+    default ""
+
+config BRIDGE_SPPRO_PASSWORD
+    string "SP PRO link password"
+    default "Selectronic SP PRO"
+    help
+      The factory default. Used only for the challenge-response handshake that the inverter
+      requires before it will answer register reads.
+
+config BRIDGE_POLL_INTERVAL_MS
+    int "Poll interval (ms)"
+    default 3000
+    range 500 60000
+    help
+      3000 matches the host bridge's fast path. Lower values cost more serial traffic for
+      little gain: the SP PRO's own figures do not update faster than about a second.
+
+config BRIDGE_UART_NUM
+    int "UART port"
+    default 2
+
+config BRIDGE_UART_TX_GPIO
+    int "UART TX GPIO"
+    default 4
+    help
+      Default is the UEXT connector on the ESP32-POE-ISO. VERIFY against the board schematic
+      before wiring: a pin used by the Ethernet PHY will break the network instead.
+
+config BRIDGE_UART_RX_GPIO
+    int "UART RX GPIO"
+    default 36
+    help
+      GPIO36 is input-only, which is fine for RX and useless for anything else. VERIFY.
+
+config BRIDGE_UART_BAUD
+    int "UART baud rate"
+    default 57600
+    help
+      splink's auto-baud tries 57600 first because it is what these units are usually on.
+      There is no auto-baud here: one rate, set deliberately.
+
+config BRIDGE_ETH_PHY_ADDR
+    int "Ethernet PHY address"
+    default 0
+
+config BRIDGE_ETH_MDC_GPIO
+    int "Ethernet MDC GPIO"
+    default 23
+
+config BRIDGE_ETH_MDIO_GPIO
+    int "Ethernet MDIO GPIO"
+    default 18
+
+config BRIDGE_ETH_CLK_GPIO
+    int "RMII clock output GPIO"
+    default 17
+
+config BRIDGE_ETH_PHY_POWER_GPIO
+    int "PHY power-enable GPIO"
+    default 12
+
+endmenu

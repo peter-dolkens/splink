@@ -14,3 +14,9 @@ secrets/
 
 # Decompiled vendor software used to derive the protocol. Never distribute.
 reference/
+
+# firmware
+firmware/**/build/
+firmware/**/sdkconfig
+firmware/**/sdkconfig.old
+firmware/esp32-poe-iso/test/test_sppro
