@@ -54,6 +54,13 @@ USB_RESET_AFTER = int(os.environ.get("USB_RESET_AFTER", "120"))
 MIN_REBOOT_GAP = int(os.environ.get("MIN_REBOOT_GAP", "1800"))
 DIAG_DIR = os.environ.get("WATCHDOG_DIAG_DIR", "/var/lib/splink/diagnostics")
 DIAG_KEEP = int(os.environ.get("WATCHDOG_DIAG_KEEP", "20"))
+# A slow leak is invisible in a spot check and obvious in a trend, and the journal here is
+# volatile, so there is nowhere else such a trend could accumulate. One short line per sample:
+# ~150 a day, a few tens of KB, which the card will not notice.
+SAMPLE_EVERY = int(os.environ.get("WATCHDOG_SAMPLE_EVERY", "600"))
+SAMPLE_FILE = os.environ.get("WATCHDOG_SAMPLE_FILE", "/var/lib/splink/resources.csv")
+SAMPLE_MAX_BYTES = int(os.environ.get("WATCHDOG_SAMPLE_MAX", "2000000"))
+WATCHED_UNITS = ["splink", "mqtt-publish", "block-logger"]
 
 SPPRO_USB = (0x04d8, 0x000a)   # Microchip CDC RS-232, as the SP PRO presents itself
 USBDEVFS_RESET = ord('U') << 8 | 20
@@ -130,6 +137,77 @@ def usb_reset():
                 log(f"USB reset on {path} failed: {e}")
     log("SP PRO not found on the USB bus -- it has gone entirely, so a reset has nothing to act on")
     return False
+
+
+def unit_pid(unit):
+    try:
+        out = subprocess.run(["systemctl", "show", "-p", "MainPID", "--value", unit],
+                             capture_output=True, text=True, timeout=10).stdout.strip()
+        pid = int(out)
+        return pid or None
+    except Exception:
+        return None
+
+
+def proc_stats(pid):
+    """RSS in kB, thread count and open descriptors for one process."""
+    rss = threads = fds = ""
+    try:
+        with open(f"/proc/{pid}/status") as fh:
+            for line in fh:
+                if line.startswith("VmRSS:"):
+                    rss = line.split()[1]
+                elif line.startswith("Threads:"):
+                    threads = line.split()[1]
+    except OSError:
+        pass
+    try:
+        fds = str(len(os.listdir(f"/proc/{pid}/fd")))
+    except OSError:
+        pass
+    return rss, threads, fds
+
+
+def sample():
+    """Append one row of resource counters, so a leak shows up as a trend rather than a guess.
+
+    Deliberately cheap and deliberately boring: if this ever becomes expensive or clever it
+    will be the thing that destabilises the box it is meant to be watching.
+    """
+    row = [time.strftime("%Y-%m-%dT%H:%M:%S")]
+    for unit in WATCHED_UNITS:
+        pid = unit_pid(unit)
+        if pid is None:
+            row += ["", "", ""]
+            continue
+        row += list(proc_stats(pid))
+    try:
+        with open("/proc/meminfo") as fh:
+            avail = next((l.split()[1] for l in fh if l.startswith("MemAvailable:")), "")
+    except OSError:
+        avail = ""
+    row.append(avail)
+    try:
+        # Rising USB errors would point at the shared controller rather than at our code.
+        errs = subprocess.run(["dmesg", "--level=err,warn"], capture_output=True,
+                              text=True, timeout=15).stdout.lower()
+        row.append(str(sum(1 for l in errs.splitlines() if "usb" in l or "dwc_otg" in l)))
+    except Exception:
+        row.append("")
+
+    header = "when," + ",".join(f"{u}_rss_kb,{u}_threads,{u}_fds" for u in WATCHED_UNITS) \
+             + ",mem_available_kb,usb_errors"
+    try:
+        os.makedirs(os.path.dirname(SAMPLE_FILE), exist_ok=True)
+        if os.path.exists(SAMPLE_FILE) and os.path.getsize(SAMPLE_FILE) > SAMPLE_MAX_BYTES:
+            os.replace(SAMPLE_FILE, SAMPLE_FILE + ".1")
+        fresh = not os.path.exists(SAMPLE_FILE)
+        with open(SAMPLE_FILE, "a") as fh:
+            if fresh:
+                fh.write(header + "\n")
+            fh.write(",".join(row) + "\n")
+    except OSError as e:
+        log(f"could not record resource sample: {e}")
 
 
 def capture(reason):
@@ -232,14 +310,20 @@ def main():
     signal.signal(signal.SIGINT, stop)
 
     log(f"watchdog up: checking every {CHECK_EVERY}s, acting after {FAIL_SECONDS}s of fault "
-        f"(USB reset at {USB_RESET_AFTER}s), minimum {MIN_REBOOT_GAP / 60:.0f} min between reboots")
+        f"(USB reset at {USB_RESET_AFTER}s), minimum {MIN_REBOOT_GAP / 60:.0f} min between reboots; "
+        f"resource sample every {SAMPLE_EVERY}s to {SAMPLE_FILE}")
 
     bridge_bad_since = None
     mqtt_bad_since = None
     reset_tried = False
+    last_sample = 0.0
 
     while running:
         now = time.time()
+
+        if now - last_sample >= SAMPLE_EVERY:
+            sample()
+            last_sample = now
 
         if bridge_alive():
             if bridge_bad_since:
