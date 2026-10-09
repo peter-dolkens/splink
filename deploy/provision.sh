@@ -12,6 +12,7 @@
 #   splink/        the published linux-arm64 (or linux-x64) build
 #   bridge.json    which Fronius inverters to poll
 #   mqtt-publish.py
+#   watchdog.py, splink-watchdog.service
 set -euo pipefail
 
 SERIAL_PORT="${SERIAL_PORT:-auto}"        # 'auto' picks the sole candidate tty
@@ -43,6 +44,7 @@ rm -rf /opt/splink/app
 mkdir -p /opt/splink/app
 cp -a "$HERE/splink/." /opt/splink/app/
 install -m755 "$HERE/mqtt-publish.py" /opt/splink/mqtt-publish.py
+install -m755 "$HERE/watchdog.py" /opt/splink/watchdog.py
 chown -R splink:splink /opt/splink
 chmod +x /opt/splink/app/splink
 
@@ -78,8 +80,21 @@ MemoryMax=400M
 WantedBy=multi-user.target
 UNIT
 
+say "Watchdog"
+# Ethernet on a Pi 3 shares its single USB controller with the SP PRO's serial adapter, while
+# the SD card does not -- so a USB wedge takes out the inverter link and the network together
+# and leaves the OS running happily, with nothing to recover it. This caught that case.
+install -m644 "$HERE/splink-watchdog.service" /etc/systemd/system/splink-watchdog.service
+install -d -o splink -g splink /var/lib/splink/diagnostics
+# The publisher's heartbeat lives on tmpfs so it can be written every cycle without wearing
+# the card; the watchdog reads it to tell "publishing" from "running but achieving nothing".
+mkdir -p /etc/systemd/system/mqtt-publish.service.d
+printf '[Service]\nRuntimeDirectory=splink\nRuntimeDirectoryPreserve=yes\n' \
+  > /etc/systemd/system/mqtt-publish.service.d/10-runtime-dir.conf
+
 systemctl daemon-reload
 systemctl enable splink
+systemctl enable splink-watchdog
 systemctl restart splink
 
 say "Verifying"

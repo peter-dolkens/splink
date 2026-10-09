@@ -49,6 +49,10 @@ INTERVAL = int(os.environ.get("INTERVAL", "60"))
 FORCE_EVERY = int(os.environ.get("FORCE_EVERY", "900"))
 PREFIX = "solar-bridge"
 DISCOVERY = "homeassistant"
+# Touched whenever a cycle completes with the broker connected, so the watchdog can tell
+# "publishing is working" from "this process is alive but achieving nothing". It lives on
+# tmpfs: this is written every cycle and the SD card should not wear out recording it.
+HEARTBEAT = os.environ.get("MQTT_HEARTBEAT", "/run/splink/mqtt-ok")
 
 running = True
 _last_sent: dict[str, str] = {}
@@ -483,6 +487,17 @@ def bucket_payload(sp, blocks_flat, routes, bucket):
     return out
 
 
+def heartbeat():
+    """Record that a publish cycle got all the way through to a connected broker."""
+    try:
+        os.makedirs(os.path.dirname(HEARTBEAT), exist_ok=True)
+        with open(HEARTBEAT, "w") as fh:
+            fh.write(str(time.time()))
+    except OSError:
+        # Never let the health marker take down the thing it is reporting on.
+        pass
+
+
 def publish_if_due(client, topic, payload, bucket, force):
     """Publish when the bucket's interval has elapsed and the payload actually changed."""
     now = time.time()
@@ -698,6 +713,10 @@ def main():
                 print(f"bridge recovered after {fails} failures", flush=True)
                 client.publish(f"{PREFIX}/status", "online", retain=True)
             fails = 0
+            # Only meaningful if the broker is actually there -- paho queues silently while
+            # disconnected, so a publish call returning is not evidence of anything.
+            if client.is_connected():
+                heartbeat()
         except Exception as e:
             fails += 1
             print(f"bridge read failed ({fails}): {e}", file=sys.stderr, flush=True)

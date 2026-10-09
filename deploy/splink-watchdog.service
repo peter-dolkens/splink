@@ -1,0 +1,23 @@
+[Unit]
+Description=Recover the solar bridge when the USB link or the network wedges
+After=network-online.target splink.service mqtt-publish.service
+
+[Service]
+Type=simple
+# Root: it has to issue USBDEVFS_RESET, read the journal, and reboot the machine.
+User=root
+Environment=BRIDGE_URL=http://localhost:8080
+Environment=MQTT_HEARTBEAT=/run/splink/mqtt-ok
+ExecStart=/usr/bin/python3 /opt/splink/watchdog.py
+Restart=always
+RestartSec=30s
+# Writes only its own diagnostics; everything else stays read-only. /dev is left alone on
+# purpose, since the USB reset needs /dev/bus/usb.
+ProtectSystem=strict
+ReadWritePaths=/var/lib/splink
+ProtectHome=true
+PrivateTmp=true
+MemoryMax=64M
+
+[Install]
+WantedBy=multi-user.target
